@@ -3,6 +3,8 @@
 import type React from "react";
 
 import { useState } from "react";
+import { signIn, getSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,13 +15,38 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt with:", { email, password });
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid username or password");
+      } else {
+        // Check if session was created successfully
+        const session = await getSession();
+        if (session) {
+          router.push("/dashboard");
+        }
+      }
+    } catch (error) {
+      setError("An error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,15 +80,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">
-              Email
+            <Label htmlFor="username" className="text-white">
+              Username
             </Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               className="bg-white/20 border-white/30 text-white placeholder:text-gray-300"
             />
@@ -106,11 +133,18 @@ export default function LoginPage() {
             </Label>
           </div>
 
+          {error && (
+            <div className="text-red-300 text-sm text-center bg-red-900/20 p-2 rounded">
+              {error}
+            </div>
+          )}
+
           <Button
             type="submit"
-            className="w-full bg-blue-700 hover:bg-blue-600 text-white"
+            disabled={isLoading}
+            className="w-full bg-blue-700 hover:bg-blue-600 text-white disabled:opacity-50"
           >
-            Sign in
+            {isLoading ? "Signing in..." : "Sign in"}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </form>

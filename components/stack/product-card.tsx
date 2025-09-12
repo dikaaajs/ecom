@@ -5,7 +5,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import Image from "next/image";
 
 interface ProductCardProps {
   title: string;
@@ -31,7 +30,7 @@ export function ProductCard({
           alt={title}
           className="w-full h-full object-cover transition-transform hover:scale-105 z-0"
         />
-        <div className="px-2 py-0.5 bottom-3 right-3 absolute z-20 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border border-gray-100">
+        <div className="px-2 py-0.5 bottom-3 right-3 absolute z-20 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border border-gray-100 bg-white">
           <p className="font-bold text-[.8rem]">
             {new Intl.NumberFormat("id-ID", {
               style: "currency",

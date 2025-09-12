@@ -14,9 +14,39 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useEffect, useState } from "react";
+import { ProductsType } from "./dashboard/product/page";
 
 export default function Home() {
   const router = useRouter();
+
+  const [products, setProducts] = useState<ProductsType>({
+    success: false,
+    data: [],
+    count: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  const getProducts = async () => {
+    try {
+      const res = await fetch("/api/products", {
+        method: "GET",
+        cache: "no-store", // biar ga ke-cache
+      });
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getProducts();
+  }, []);
+
   return (
     <div>
       {/* hero */}
@@ -75,16 +105,22 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                title={product.title}
-                description={product.description}
-                tags={product.tags}
-                price={product.price}
-                imageUrl={product.imageUrl}
-              />
-            ))}
+            {products ? (
+              <>
+                {products.data.map((product: any) => (
+                  <ProductCard
+                    key={product.id}
+                    title={product.title}
+                    description={product.description}
+                    tags={product.tags}
+                    price={product.price}
+                    imageUrl={product.imageUrl}
+                  />
+                ))}
+              </>
+            ) : (
+              <div>loading</div>
+            )}
           </div>
         </div>
       </div>

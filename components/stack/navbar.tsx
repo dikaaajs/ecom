@@ -9,7 +9,6 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -53,6 +52,8 @@ export function Navbar() {
   return (
     <div
       className={`fixed top-0 z-40 w-full px-4 py-4 md:px-[50px] md:py-[20px] transition-colors flex justify-between ${
+        pathname.includes("dashboard") && "hidden"
+      }  ${
         isScrolled
           ? "text-black bg-white shadow-md"
           : "text-white bg-transparent"
