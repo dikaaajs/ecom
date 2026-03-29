@@ -122,11 +122,15 @@
   }
 }
 
+.paragraf {
+  @apply text-muted-foreground text-sm font-normal;
+}
+
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/font/Satoshi-Variable.ttf');
+  font-family: "Satoshi";
+  src: url("/font/Satoshi-Variable.ttf");
 }
 
 .font-satoshi {
-  font-family: 'Satoshi';
+  font-family: "Satoshi";
 }

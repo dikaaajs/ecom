@@ -71,9 +71,7 @@ export default function SignInPage() {
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Admin Login</h1>
-          <p className="text-gray-200">
-            Sign in to access the admin dashboard
-          </p>
+          <p className="text-gray-200">Sign in to access the admin dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -145,9 +143,7 @@ export default function SignInPage() {
         </div>
 
         <div className="text-center">
-          <p className="text-gray-200 text-sm">
-            Admin access only
-          </p>
+          <p className="text-gray-200 text-sm">Admin access only</p>
         </div>
       </div>
     </div>

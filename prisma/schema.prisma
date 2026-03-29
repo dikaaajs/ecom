@@ -8,19 +8,94 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum TagColor {
+  SLATE
+  GRAY
+  ZINC
+  NEUTRAL
+  STONE
+
+  RED
+  ORANGE
+  AMBER
+  YELLOW
+  LIME
+  GREEN
+  EMERALD
+  TEAL
+  CYAN
+  SKY
+  BLUE
+  INDIGO
+  VIOLET
+  PURPLE
+  FUCHSIA
+  PINK
+  ROSE
+}
+
 model Product {
   id          String   @id @default(cuid())
   title       String
+  slug        String   @unique
   description String?
-  price       Decimal  @db.Decimal(10, 2)
+
+  price       Decimal  @db.Decimal(10,2)
+  stock       Int      @default(0)
+
+  weight      Int      // gram
+  length      Int?     // cm
+  width       Int?     // cm
+  height      Int?     // cm
+
   imageUrl    String?
-  tags        String[]
-  category    String?
-  inStock     Boolean  @default(true)
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  tags        Tag[]
+  images      ProductImage[]
+
+  isPublished Boolean  @default(true)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("products")
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+
+  @@map("categories")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  color     TagColor  @default(GRAY)
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+
+  @@map("tags")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
 }
 
 model AdminUser {

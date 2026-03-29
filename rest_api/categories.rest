@@ -1,0 +1,20 @@
+GET http://localhost:3000/api/categories
+
+### post
+POST http://localhost:3000/api/categories
+Content-Type: application/json
+
+{
+    "name": "apala"
+}
+
+### edit
+PUT http://localhost:3000/api/categories/cmmrzq42d0007twn0fcpqo2sd
+Content-Type: application/json
+
+{
+    "name": "manuk"
+}
+
+### delete
+DELETE http://localhost:3000/api/categories/cmmrz746i0000twn0m8rxnk1z

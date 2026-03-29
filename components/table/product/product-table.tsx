@@ -28,8 +28,8 @@ import { Button } from "@/components/ui/button";
 import { DataTablePagination } from "@/components/data-table-pagination";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { PlusIcon, Trash } from "lucide-react";
-import { ButtonUploadProduct } from "@/components/button-upload-product";
+import { Trash } from "lucide-react";
+import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
 import { toast } from "sonner";
 
 interface DataTableProps<TData, TValue> {
@@ -38,7 +38,7 @@ interface DataTableProps<TData, TValue> {
   onUpdated: any;
 }
 
-export function DataTable<TData, TValue>({
+export function ProductTable<TData, TValue>({
   columns,
   data,
   onUpdated,
@@ -68,7 +68,7 @@ export function DataTable<TData, TValue>({
     }
 
     try {
-      const res = await fetch("/api/products", {
+      const res = await fetch("/api/admin/products", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -105,15 +105,18 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm h-[30px]"
         />
-        {/* left */}
         <div className="flex gap-[10px]">
+          {/* button delete product */}
           <Button variant={"outline"} size="sm" onClick={handleDelete}>
             <Trash className="text-red-600" />
           </Button>
-          <ButtonUploadProduct onUpdated={onUpdated} />
+
+          {/* button upload product */}
+          <ButtonUploadProduct products={null} onUpdated={onUpdated} />
         </div>
       </div>
 
+      {/* body */}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-slate-50">
@@ -125,7 +128,7 @@ export function DataTable<TData, TValue>({
                       <span>
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </span>
                     </TableHead>
@@ -145,7 +148,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -166,7 +169,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* pagination */}
-      <div className="mt-[14px]">
+      <div className="mt-[14px] w-full">
         <DataTablePagination table={table} />
       </div>
     </div>

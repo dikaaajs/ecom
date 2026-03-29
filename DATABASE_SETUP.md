@@ -31,16 +31,19 @@ ADMIN_PASSWORD=your_secure_admin_password
 ## Database Setup
 
 1. Run database migrations:
+
 ```bash
 npm run db:migrate
 ```
 
 2. Generate Prisma client:
+
 ```bash
 npm run db:generate
 ```
 
 3. Set up initial data (admin user and site settings):
+
 ```bash
 npm run db:setup
 ```
@@ -48,6 +51,7 @@ npm run db:setup
 ## Verification
 
 1. Open Prisma Studio to verify the database:
+
 ```bash
 npm run db:studio
 ```
@@ -62,6 +66,7 @@ npm run db:studio
 ## Next Steps
 
 After completing the database setup, you can:
+
 - Start the development server: `npm run dev`
 - Access the admin dashboard at `/dashboard` (after implementing the UI)
 - Use the API endpoints for managing products and settings

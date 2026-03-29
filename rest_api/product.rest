@@ -1,0 +1,67 @@
+### user
+### get all products published
+GET    /api/products
+
+### get one product
+GET    /api/products/[slug]
+
+### admin
+GET http://localhost:3000/api/admin/products
+
+### post all products
+POST   http://localhost:3000/api/admin/products
+Content-Type: application/json
+
+{
+  "title": "bahlil etanol",
+  "description": "spesies langka",
+  "price": 299000,
+  "stock": 10,
+  "weight": 200,
+  "length": 10,
+  "width": 5,
+  "height": 3,
+  "imageUrl": "https://i.pinimg.com/736x/36/7c/71/367c71d88406ca507e3f033d6462ebea.jpg",
+  "categoryId": "cmmtej3od0000twlgwupyuznh",
+  "tagIds": ["cmmto7gw50005tw6srmb2hgs4", "1"],
+  "images": [
+    "https://i.pinimg.com/736x/bb/49/ba/bb49ba436513788fbde252366d2ebcaa.jpg",
+    "https://i.pinimg.com/736x/49/29/57/49295743a3bc08580e9e09233c171f81.jpg"
+  ],
+  "isPublished": true
+}
+
+### edit product by id
+PATCH  http://localhost:3000/api/admin/products/cmmu8ihmh0000tw6gd39yr5or
+Content-Type: application/json
+
+{
+  "title" : "manuk jawa"
+}
+
+### publish product
+PATCH  http://localhost:3000/api/admin/products/cmmu8ihmh0000tw6gd39yr5or/publish
+Content-Type: application/json
+
+{
+  "isPublished": true
+}
+
+### add media to product -note masukan image atau tag sebelumnya kalo ingin masih tersimpan
+PATCH  http://localhost:3000/api/admin/products/cmmu8ihmh0000tw6gd39yr5or/media
+Content-Type: application/json
+
+{
+  "images": ["https://i.pinimg.com/736x/37/9e/a4/379ea46cb1509878d0569e3525dbc427.jpg"]
+}
+
+### delete product
+DELETE http://localhost:3000/api/admin/products
+Content-Type: application/json
+
+{
+  "ids" : ["cmmtsg9k6000atw6sunn1o2b5"]
+}
+
+### post product
+POST http://localhost:3000/api/products

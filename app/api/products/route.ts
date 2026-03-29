@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import slugify from "slugify";
 
 export async function GET(req: Request) {
   try {
@@ -16,6 +17,11 @@ export async function GET(req: Request) {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        category: true,
+        tags: true,
+        images: true,
+      },
     });
 
     return NextResponse.json(
@@ -28,7 +34,7 @@ export async function GET(req: Request) {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -40,7 +46,7 @@ export async function GET(req: Request) {
           error: "Service Unavailable",
           message: "Database connection failed",
         },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
@@ -50,7 +56,7 @@ export async function GET(req: Request) {
         error: "Internal Server Error",
         message: "Failed to fetch products",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -59,21 +65,74 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    const {
+      title,
+      description,
+      price,
+      stock,
+      weight,
+      length,
+      width,
+      height,
+      imageUrl,
+      categoryId,
+      tagIds,
+      images,
+      isPublished,
+    } = body;
+
     const product = await prisma.product.create({
       data: {
-        title: body.title,
-        description: body.description,
-        price: parseFloat(body.price),
-        imageUrl: body.imageUrl,
-        tags: body.tags || [],
-        category: body.category,
-        inStock: body.inStock ?? true,
+        title,
+        slug: slugify(title),
+        description,
+
+        price,
+        stock: stock ?? 0,
+
+        weight,
+        length,
+        width,
+        height,
+
+        imageUrl: imageUrl || null,
+
+        isPublished: isPublished ?? true,
+
+        category: categoryId
+          ? {
+              connect: { id: categoryId },
+            }
+          : undefined,
+
+        tags: tagIds
+          ? {
+              connect: tagIds.map((id: string) => ({ id })),
+            }
+          : undefined,
+
+        images: images
+          ? {
+              create: images.map((url: string) => ({
+                url,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        category: true,
+        tags: true,
+        images: true,
       },
     });
 
-    return NextResponse.json(product, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(product);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: "Failed to create product" },
+      { status: 500 },
+    );
   }
 }
 
@@ -98,13 +157,13 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json(
       { message: "Products deleted successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("DELETE /api/products error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

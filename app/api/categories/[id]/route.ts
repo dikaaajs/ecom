@@ -1,0 +1,46 @@
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import slugify from "slugify";
+
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const body = await req.json();
+
+  try {
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        name: body.name,
+        slug: slugify(body.name, { lower: true }),
+      },
+    });
+    return NextResponse.json(category);
+  } catch (error: any) {
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { message: "Slug sudah digunakan, gunakan nama lain" },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Terjadi kesalahan pada server" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  await prisma.category.delete({
+    where: { id },
+  });
+
+  return NextResponse.json({ message: "Category deleted" });
+}

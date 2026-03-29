@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { id } = params;
@@ -15,7 +15,7 @@ export async function GET(
           error: "Bad Request",
           message: "Product ID is required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +32,7 @@ export async function GET(
           error: "Not Found",
           message: "Product not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function GET(
         headers: {
           "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -58,7 +58,7 @@ export async function GET(
           error: "Service Unavailable",
           message: "Database connection failed",
         },
-        { status: 503 }
+        { status: 503 },
       );
     }
 
@@ -68,50 +68,39 @@ export async function GET(
         error: "Internal Server Error",
         message: "Failed to fetch product",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// Update Product
-export async function PUT(
+export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
 
-    const { title, description, price, imageUrl, tags, category, inStock } =
-      body;
-
-    // Validasi sederhana
-    if (!title || !price) {
-      return NextResponse.json(
-        { message: "Title and Price are required" },
-        { status: 400 }
-      );
-    }
-
-    const updatedProduct = await prisma.product.update({
+    const product = await prisma.product.update({
       where: { id },
       data: {
-        title,
-        description,
-        price: parseFloat(price),
-        imageUrl,
-        tags,
-        category,
-        inStock,
+        ...body,
       },
     });
 
-    return NextResponse.json(updatedProduct, { status: 200 });
-  } catch (err: any) {
-    console.error(err);
+    return NextResponse.json({
+      success: true,
+      data: product,
+    });
+  } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
-      { message: err.message || "Failed to update product" },
-      { status: 500 }
+      {
+        success: false,
+        message: "Failed to update product",
+      },
+      { status: 500 },
     );
   }
 }

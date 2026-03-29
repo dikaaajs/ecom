@@ -24,21 +24,25 @@ import { DataTablePagination } from "@/components/data-table-pagination";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { PlusIcon, Trash } from "lucide-react";
-import { ButtonUploadProduct } from "@/components/button-upload-product";
+import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
+import ButtonCategoryUpload from "@/components/buttons/categories/button-category-upload";
+import { toast } from "sonner";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onUpdated: () => void;
 }
 
-export function DataTableCategory<TData, TValue>({
+export function CategoryTable<TData, TValue>({
   columns,
   data,
+  onUpdated,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
-    data,
+    data: data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -49,6 +53,43 @@ export function DataTableCategory<TData, TValue>({
       columnFilters,
     },
   });
+
+  // handle delete
+  const handleDelete = async () => {
+    const selectedIds = table
+      .getSelectedRowModel()
+      .rows.map((row: any) => row.original.id);
+
+    if (selectedIds.length === 0) {
+      toast.error("Tidak ada data yang dipilih");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/categories", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal menghapus data");
+      }
+
+      const data = await res.json();
+      console.log("Delete response:", data);
+
+      // ✅ Bisa reload data table atau trigger re-fetch
+      table.resetRowSelection(); // hapus checkbox yang masih kepilih
+      toast.success("Data berhasil dihapus");
+      onUpdated();
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast.error("Terjadi kesalahan saat menghapus data");
+    }
+  };
 
   return (
     <div className="space-y-2 font-satoshi">
@@ -63,8 +104,15 @@ export function DataTableCategory<TData, TValue>({
           className="max-w-sm text-sm h-[30px]"
         />
         {/* left */}
-        <div className="flex gap-[5px]"></div>
+        <div className="flex gap-[10px]">
+          <Button variant={"outline"} size="sm" onClick={handleDelete}>
+            <Trash className="text-red-600" />
+          </Button>
+          <ButtonCategoryUpload onUpdated={onUpdated} />
+        </div>
       </div>
+
+      {/* body */}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-slate-50">
@@ -76,7 +124,7 @@ export function DataTableCategory<TData, TValue>({
                       <span>
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </span>
                     </TableHead>
@@ -96,7 +144,7 @@ export function DataTableCategory<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

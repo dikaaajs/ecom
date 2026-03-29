@@ -17,9 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
-import tags from "../data/tags.json";
-import categories from "../data/categories.json";
-import MultipleSelector from "./multi-select";
+import tags from "@/data/tags.json";
+import categories from "@/data/categories.json";
+import MultipleSelector from "@/components/multi-select";
 
 import {
   Select,
@@ -50,10 +50,10 @@ export function ButtonEditProduct({
   const [open, setOpen] = useState(false);
 
   const [tagsValue, setTagsValue] = useState(
-    product?.tags?.map((t: string) => ({ value: t, label: t })) || []
+    product?.tags?.map((t: string) => ({ value: t, label: t })) || [],
   );
   const [categoriesValue, setCategoriesValue] = useState(
-    product?.category || "fisik"
+    product?.category || "fisik",
   );
   const [value, setValue] = useState(product?.imageUrl || "");
 
@@ -61,7 +61,7 @@ export function ButtonEditProduct({
     e.preventDefault();
     const pastedText = e.clipboardData.getData("text");
     const isImageUrl = /^https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)$/i.test(
-      pastedText
+      pastedText,
     );
 
     if (isImageUrl) {

@@ -1,80 +1,169 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import slugify from "slugify";
 
-// Validation schema for product creation
-const createProductSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  price: z.number().positive('Price must be positive'),
-  imageUrl: z.string().url('Invalid image URL').optional(),
-  tags: z.array(z.string()).default([]),
-  category: z.string().optional(),
-  inStock: z.boolean().default(true)
-})
-
-export async function POST(request: NextRequest) {
+export async function GET(req: Request) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized', message: 'Admin access required' },
-        { status: 401 }
-      )
+    const { searchParams } = new URL(req.url);
+    const filStock = searchParams.get("filStock");
+
+    const where: any = {};
+    if (filStock == "true") {
+      where.inStock = true;
     }
 
-    // Parse and validate request body
-    const body = await request.json()
-    const validatedData = createProductSchema.parse(body)
+    const products = await prisma.product.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        category: true,
+        tags: true,
+        images: true,
+      },
+    });
 
-    // Create product in database
+    return NextResponse.json(
+      {
+        success: true,
+        data: products,
+        count: products.length,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("Error fetching products:", error);
+
+    if (error instanceof Error && error.message.includes("connect")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Service Unavailable",
+          message: "Database connection failed",
+        },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal Server Error",
+        message: "Failed to fetch products",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    const {
+      title,
+      description,
+      price,
+      stock,
+      weight,
+      length,
+      width,
+      height,
+      imageUrl,
+      categoryId,
+      tagIds,
+      images,
+      isPublished,
+    } = body;
+
     const product = await prisma.product.create({
       data: {
-        title: validatedData.title,
-        description: validatedData.description,
-        price: validatedData.price,
-        imageUrl: validatedData.imageUrl,
-        tags: validatedData.tags,
-        category: validatedData.category,
-        inStock: validatedData.inStock
-      }
-    })
+        title,
+        slug: slugify(title),
+        description,
 
-    return NextResponse.json(
-      { 
-        success: true,
-        message: 'Product created successfully',
-        data: product 
+        price,
+        stock: stock ?? 0,
+
+        weight,
+        length,
+        width,
+        height,
+
+        imageUrl,
+
+        isPublished: isPublished ?? true,
+
+        category: categoryId
+          ? {
+              connect: { id: categoryId },
+            }
+          : undefined,
+
+        tags: tagIds
+          ? {
+              connect: tagIds.map((id: string) => ({ id })),
+            }
+          : undefined,
+
+        images: images
+          ? {
+              create: images.map((url: string) => ({
+                url,
+              })),
+            }
+          : undefined,
       },
-      { status: 201 }
-    )
+      include: {
+        category: true,
+        tags: true,
+        images: true,
+      },
+    });
 
+    return NextResponse.json(product);
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error(error);
+    return NextResponse.json(
+      { message: "Failed to create product" },
+      { status: 500 },
+    );
+  }
+}
 
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Validation Error',
-          message: 'Invalid product data',
-          details: error.cause
-        },
-        { status: 422 }
-      )
+// DELETE /api/products
+export async function DELETE(req: Request) {
+  try {
+    const body = await req.json();
+    const { ids } = body as { ids: string[] };
+
+    if (!ids || ids.length === 0) {
+      return NextResponse.json({ error: "No IDs provided" }, { status: 400 });
     }
 
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal Server Error',
-        message: 'Failed to create product'
+    // Hapus data berdasarkan array ID
+    await prisma.product.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
       },
-      { status: 500 }
-    )
+    });
+
+    return NextResponse.json(
+      { message: "Products deleted successfully" },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("DELETE /api/products error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
