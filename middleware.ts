@@ -3,44 +3,24 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    // Check if user is trying to access admin routes
-    // if (req.nextUrl.pathname.startsWith("/dashboard")) {
-    //   // Check if user has admin role
-    //   if (req.nextauth.token?.role !== "admin") {
-    //     return NextResponse.redirect(new URL("/auth/signin", req.url))
-    //   }
-    // }
-
-    // Check if user is trying to access admin API routes
-    // if (req.nextUrl.pathname.startsWith("/api/admin")) {
-    //   // Check if user has admin role
-    //   if (req.nextauth.token?.role !== "admin") {
-    //     return NextResponse.json(
-    //       { error: "Unauthorized", message: "Admin access required" },
-    //       { status: 401 }
-    //     );
-    //   }
-    // }
-
+    const path = req.nextUrl.pathname;
+    if (path.startsWith("/api/admin") && req.nextauth.token?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (path.startsWith("/dashboard") && req.nextauth.token?.role !== "admin") {
+      return NextResponse.redirect(new URL("/auth/signin", req.url));
+    }
     return NextResponse.next();
   },
   {
+    pages: { signIn: "/auth/signin" },
     callbacks: {
       authorized: ({ token, req }) => {
-        // // Allow access to auth pages without token
-        // if (req.nextUrl.pathname.startsWith("/auth/")) {
-        //   return true;
-        // }
-
-        // // Require token for dashboard and admin API routes
-        // if (
-        //   req.nextUrl.pathname.startsWith("/dashboard") ||
-        //   req.nextUrl.pathname.startsWith("/api/admin")
-        // ) {
-        //   return !!token;
-        // }
-
-        // Allow all other routes
+        const path = req.nextUrl.pathname;
+        if (path.startsWith("/api/admin") || path.startsWith("/dashboard")) {
+          // Authenticated users reach middleware; role is checked there.
+          return !!token;
+        }
         return true;
       },
     },
@@ -48,5 +28,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/admin/:path*", "/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/api/admin/:path*"],
 };
