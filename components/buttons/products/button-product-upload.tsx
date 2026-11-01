@@ -45,7 +45,7 @@ export function ButtonUploadProduct({
   const [tagsValue, setTagsValue] = useState<[]>([]);
   const [categoriesValue, setCategoriesValue] = useState("");
   const [formData, setFormData] = useState<FormDataProductType>({
-    title: null,
+    type: "PHYSICAL",\n    title: null,
     description: null,
     price: null,
     stock: null,
@@ -60,7 +60,7 @@ export function ButtonUploadProduct({
     if (open && products) {
       // 1. Populate data teks & angka
       setFormData({
-        title: products.title || "",
+        type: products.type || "PHYSICAL",\n        title: products.title || "",
         description: products.description || "",
         price: products.price || null,
         stock: products.stock || null,
@@ -213,8 +213,8 @@ export function ButtonUploadProduct({
       ),
     },
     {
-      name: "Dimantion",
-      value: "dimantion",
+      name: "Dimensions",
+      value: "dimensions",
       content: (
         <DimentionFrom
           formData={formData}
