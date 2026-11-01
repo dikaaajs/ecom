@@ -157,7 +157,7 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
           try {
             setLoading(true);
 
-            const response = await fetch(`/api/products/${product.id}`, {
+            const response = await fetch(`/api/admin/products/${product.id}`, {
               method: "PATCH",
               body: JSON.stringify({ isPublished: value }),
             });
