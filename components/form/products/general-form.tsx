@@ -19,7 +19,7 @@ type GeneralFormType = {
   setTagsValue: (e: any) => void;
   categoriesValue: string;
   setCategoriesValue: (e: any) => void;
-  formData: any;
+  formData: any;\n  setProductType: (type: "PHYSICAL" | "DIGITAL") => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -35,7 +35,7 @@ export default function GeneralForm({
 }: GeneralFormType) {
   return (
     <div className="grid gap-4 py-2">
-      {/* title */}
+      <div className="grid gap-2">\n        <Label>Product type</Label>\n        <Select value={formData.type ?? "PHYSICAL"} onValueChange={(v) => setProductType(v as "PHYSICAL" | "DIGITAL")}>\n          <SelectTrigger><SelectValue placeholder="Select product type" /></SelectTrigger>\n          <SelectContent>\n            <SelectItem value="PHYSICAL">Physical product (requires shipping)</SelectItem>\n            <SelectItem value="DIGITAL">Digital product (no shipping)</SelectItem>\n          </SelectContent>\n        </Select>\n      </div>\n      {/* title */}
       <div className="grid gap-2">
         <Label htmlFor="title">Title</Label>
         <Input
