@@ -1,15 +1,19 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import slugify from "slugify";
 
 export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const { searchParams } = new URL(req.url);
     const filStock = searchParams.get("filStock");
 
     const where: any = {};
     if (filStock == "true") {
-      where.inStock = true;
+      where.stock = { gt: 0 };
     }
 
     const products = await prisma.product.findMany({
@@ -32,7 +36,7 @@ export async function GET(req: Request) {
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          "Cache-Control": "private, no-store",
         },
       },
     );
@@ -62,6 +66,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const body = await req.json();
 
@@ -138,6 +144,8 @@ export async function POST(req: Request) {
 
 // DELETE /api/products
 export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const body = await req.json();
     const { ids } = body as { ids: string[] };
