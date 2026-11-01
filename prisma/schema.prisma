@@ -34,7 +34,12 @@ enum TagColor {
   ROSE
 }
 
-enum ProductType {\n  PHYSICAL\n  DIGITAL\n}\n\nmodel Product {
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+}
+
+model Product {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
@@ -43,7 +48,8 @@ enum ProductType {\n  PHYSICAL\n  DIGITAL\n}\n\nmodel Product {
   price       Decimal  @db.Decimal(10,2)
   stock       Int      @default(0)
 
-  type        ProductType @default(PHYSICAL)\n  weight      Int      @default(0) // gram; no shipping for DIGITAL
+  type        ProductType @default(PHYSICAL)
+  weight      Int      @default(0) // gram; no shipping for DIGITAL
   length      Int?     // cm
   width       Int?     // cm
   height      Int?     // cm
