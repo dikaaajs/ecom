@@ -22,9 +22,12 @@ async function testAdminAPI() {
         description: 'A test product for API testing',
         price: 19.99,
         imageUrl: 'https://example.com/test-image.jpg',
-        tags: ['test', 'api'],
-        category: 'test',
-        inStock: true
+        slug: `test-product-${Date.now()}`,
+        stock: 10,
+        weight: 100,
+        type: 'PHYSICAL',
+        tags: { connectOrCreate: ['test', 'api'].map((name) => ({ where: { slug: name }, create: { name, slug: name } })) },
+        category: { connectOrCreate: { where: { slug: 'test' }, create: { name: 'test', slug: 'test' } } }
       }
     })
     console.log('✅ Test product created:', testProduct.id)
@@ -48,28 +51,13 @@ async function testAdminAPI() {
     console.log('✅ Test product deleted')
 
     console.log('\n🎉 All admin API database tests passed!')
-    console.log('\nAdmin API endpoints created:')
-    console.log('✅ POST /api/admin/products - Create product')
-    console.log('✅ PUT /api/admin/products/[id] - Update product')
-    console.log('✅ DELETE /api/admin/products/[id] - Delete product')
-    console.log('✅ Authentication middleware protection')
-    console.log('✅ Input validation with Zod')
-    console.log('✅ Proper error handling')
-
+    console.log('\nNote: this script tests direct Prisma database operations, not HTTP API authorization.')
   } catch (error) {
-    console.error('❌ Admin API test failed:', error)
-    process.exit(1)
+    console.error('Admin database smoke test failed:', error)
+    process.exitCode = 1
   } finally {
     await prisma.$disconnect()
   }
 }
 
 testAdminAPI()
-  .then(() => {
-    console.log('\n✅ Admin API test completed successfully')
-    process.exit(0)
-  })
-  .catch((error) => {
-    console.error('❌ Admin API test failed:', error)
-    process.exit(1)
-  })
