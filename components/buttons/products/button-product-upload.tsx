@@ -45,7 +45,8 @@ export function ButtonUploadProduct({
   const [tagsValue, setTagsValue] = useState<[]>([]);
   const [categoriesValue, setCategoriesValue] = useState("");
   const [formData, setFormData] = useState<FormDataProductType>({
-    type: "PHYSICAL",\n    title: null,
+    type: "PHYSICAL",
+    title: null,
     description: null,
     price: null,
     stock: null,
@@ -60,7 +61,8 @@ export function ButtonUploadProduct({
     if (open && products) {
       // 1. Populate data teks & angka
       setFormData({
-        type: products.type || "PHYSICAL",\n        title: products.title || "",
+        type: products.type || "PHYSICAL",
+        title: products.title || "",
         description: products.description || "",
         price: products.price || null,
         stock: products.stock || null,
@@ -95,6 +97,7 @@ export function ButtonUploadProduct({
   // Fungsi helper reset form
   const resetForm = () => {
     setFormData({
+      type: "PHYSICAL",
       title: null,
       description: null,
       price: null,
@@ -162,6 +165,12 @@ export function ButtonUploadProduct({
     e.preventDefault();
     const restBody = {
       ...formData,
+      price: Number(formData.price),
+      stock: Number(formData.stock ?? 0),
+      weight: formData.type === "DIGITAL" ? 0 : Number(formData.weight ?? 0),
+      length: formData.type === "DIGITAL" ? null : formData.length,
+      width: formData.type === "DIGITAL" ? null : formData.width,
+      height: formData.type === "DIGITAL" ? null : formData.height,
       imageUrl: imageBanner,
       categoryId: categoriesValue,
       tagIds: tagsValue.map((tag: any) => tag.value),
@@ -208,6 +217,7 @@ export function ButtonUploadProduct({
           setTagsValue={setTagsValue}
           tagsValue={tagsValue}
           formData={formData}
+          setProductType={(type) => setFormData(prev => ({ ...prev, type }))}
           handleInputChange={handleInputChange}
         />
       ),
@@ -215,12 +225,12 @@ export function ButtonUploadProduct({
     {
       name: "Dimensions",
       value: "dimensions",
-      content: (
+      content: formData.type === "PHYSICAL" ? (
         <DimentionFrom
           formData={formData}
           handleInputChange={handleInputChange}
         />
-      ),
+      ) : <p className="py-4 text-sm">Digital products do not require shipping dimensions.</p>,
     },
     {
       name: "Media",
