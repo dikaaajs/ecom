@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusIcon } from "lucide-react";
+import { PencilIcon, PlusIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeneralForm from "@/components/form/products/general-form";
 import DimentionFrom from "@/components/form/products/dimention-form";
@@ -217,7 +217,7 @@ export function ButtonUploadProduct({
           setTagsValue={setTagsValue}
           tagsValue={tagsValue}
           formData={formData}
-          setProductType={(type) => setFormData(prev => ({ ...prev, type }))}
+          setProductType={(type) => setFormData((prev) => ({ ...prev, type }))}
           handleInputChange={handleInputChange}
         />
       ),
@@ -225,12 +225,17 @@ export function ButtonUploadProduct({
     {
       name: "Dimensions",
       value: "dimensions",
-      content: formData.type === "PHYSICAL" ? (
-        <DimentionFrom
-          formData={formData}
-          handleInputChange={handleInputChange}
-        />
-      ) : <p className="py-4 text-sm">Digital products do not require shipping dimensions.</p>,
+      content:
+        formData.type === "PHYSICAL" ? (
+          <DimentionFrom
+            formData={formData}
+            handleInputChange={handleInputChange}
+          />
+        ) : (
+          <p className="py-4 text-sm">
+            Digital products do not require shipping dimensions.
+          </p>
+        ),
     },
     {
       name: "Media",
@@ -251,7 +256,7 @@ export function ButtonUploadProduct({
       {/* button */}
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          <PlusIcon />
+          {isEdit ? <PencilIcon /> : <PlusIcon />}
           <span className="hidden lg:inline">
             {isEdit ? "Edit Product" : "Upload Product"}
           </span>
