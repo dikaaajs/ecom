@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'\nimport { getServerSession } from 'next-auth'\nimport { authOptions } from '@/lib/auth'\nimport { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { z } from 'zod'
 
 export async function GET() {
   try {
@@ -62,7 +65,9 @@ export async function GET() {
   }
 }
 
-export async function PUT(req: Request) {\n    const session = await getServerSession(authOptions)\n    if (session?.user?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function PUT(req: Request) {
+    const session = await getServerSession(authOptions)
+    if (session?.user?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     try {
       const body = await req.json()
   
@@ -73,7 +78,9 @@ export async function PUT(req: Request) {\n    const session = await getServerSe
         )
       }
   
-      const parsed = z.record(z.string().min(1).max(100), z.union([z.string().max(10000), z.number(), z.boolean(), z.record(z.string(), z.unknown())])).safeParse(body)\n      if (!parsed.success) return NextResponse.json({ error: "Invalid settings", issues: parsed.error.flatten() }, { status: 400 })\n      const updates = Object.entries(parsed.data) as [string, any][]
+      const parsed = z.record(z.string().min(1).max(100), z.union([z.string().max(10000), z.number(), z.boolean(), z.record(z.string(), z.unknown())])).safeParse(body)
+      if (!parsed.success) return NextResponse.json({ error: "Invalid settings", issues: parsed.error.flatten() }, { status: 400 })
+      const updates = Object.entries(parsed.data) as [string, any][]
   
       // lakukan upsert untuk setiap key
       const results = await Promise.all(
@@ -81,7 +88,7 @@ export async function PUT(req: Request) {\n    const session = await getServerSe
           return prisma.siteSetting.upsert({
             where: { key },
             update: { value: typeof value === 'object' ? JSON.stringify(value) : String(value) },
-            create: { key, value: String(value) },
+            create: { key, value: typeof value === 'object' ? JSON.stringify(value) : String(value) },
           })
         })
       )
