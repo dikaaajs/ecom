@@ -5,11 +5,13 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { tagColorStyles } from "@/data/tag-colors";
+import { Tag } from "@prisma/client";
 
 interface ProductCardProps {
   title: string;
   description: string;
-  tags: string[];
+  tags: Tag[];
   price: number;
   imageUrl: string;
 }
@@ -21,6 +23,7 @@ export function ProductCard({
   price,
   imageUrl,
 }: ProductCardProps) {
+  console.log(tags);
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md pt-0 font-satoshi shadow-lg">
       {/* image */}
@@ -45,9 +48,12 @@ export function ProductCard({
           <h3 className="font-extrabold text-md ">{title}</h3>
         </div>
         <div className="flex flex-wrap gap-1 mt-2">
-          {tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs">
-              {tag}
+          {tags.map((tag: Tag) => (
+            <Badge
+              key={`tags-public-${tag.id}`}
+              className={tagColorStyles[tag.color]}
+            >
+              {tag.name}
             </Badge>
           ))}
         </div>

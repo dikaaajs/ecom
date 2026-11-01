@@ -7,7 +7,8 @@ async function main() {
   console.log('🌱 Starting database seed...')
 
   // Create initial admin user
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
+  const adminPassword = process.env.ADMIN_PASSWORD
+  if (!adminPassword) throw new Error('ADMIN_PASSWORD must be configured before running seed')
   const adminUsername = process.env.ADMIN_USERNAME || 'admin'
   
   const hashedPassword = await bcrypt.hash(adminPassword, 12)
@@ -34,7 +35,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=400&fit=crop',
       tags: ['keychain', 'gaming', 'retro', '8-bit'],
       category: 'accessories',
-      inStock: true,
+      stock: 10,
     },
     {
       id: 'pixel-tote-1',
@@ -44,7 +45,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop',
       tags: ['tote bag', 'canvas', 'pixel art', 'characters'],
       category: 'bags',
-      inStock: true,
+      stock: 10,
     },
     {
       id: 'pixel-sticker-pack-1',
@@ -54,7 +55,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
       tags: ['stickers', 'vinyl', 'heroes', 'pack'],
       category: 'stickers',
-      inStock: true,
+      stock: 10,
     },
     {
       id: 'pixel-print-1',
@@ -64,7 +65,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
       tags: ['print', 'cyberpunk', 'city', 'futuristic'],
       category: 'prints',
-      inStock: true,
+      stock: 10,
     },
     {
       id: 'pixel-keychain-2',
@@ -74,7 +75,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
       tags: ['keychain', 'space', 'astronaut', 'cute'],
       category: 'accessories',
-      inStock: true,
+      stock: 10,
     },
     {
       id: 'pixel-sticker-pack-2',
@@ -84,7 +85,7 @@ async function main() {
       imageUrl: 'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=400&h=400&fit=crop',
       tags: ['stickers', 'animals', 'cute', 'woodland'],
       category: 'stickers',
-      inStock: true,
+      stock: 10,
     },
   ]
 
@@ -92,7 +93,29 @@ async function main() {
     await prisma.product.upsert({
       where: { id: product.id },
       update: {},
-      create: product,
+      create: {
+        id: product.id,
+        title: product.title,
+        slug: product.id,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        stock: product.stock,
+        type: 'PHYSICAL',
+        weight: 100,
+        category: {
+          connectOrCreate: {
+            where: { slug: product.category },
+            create: { slug: product.category, name: product.category },
+          },
+        },
+        tags: {
+          connectOrCreate: product.tags.map((name) => ({
+            where: { slug: name },
+            create: { slug: name, name },
+          })),
+        },
+      },
     })
   }
 

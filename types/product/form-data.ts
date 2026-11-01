@@ -1,4 +1,5 @@
 export type FormDataProductType = {
+  type: "PHYSICAL" | "DIGITAL";
   title: string | null;
   description: string | null;
   price: number | null;
