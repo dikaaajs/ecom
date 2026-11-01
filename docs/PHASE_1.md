@@ -1,36 +1,39 @@
-# Phase 1 — Foundation & security
+# Phase 1 — Security and product foundation
 
-## Changes
-- Restore authentication and admin-role checks for dashboard and /api/admin routes.
-- Add server-side session checks to admin product operations and category/tag mutations.
-- Public product API is read-only and hides unpublished products.
-- Product publish toggle now uses protected PATCH /api/admin/products/:id.
-- Share product API response type outside dashboard.
-- Support PHYSICAL and DIGITAL types in the Prisma schema (existing products default to PHYSICAL).
-- Fix stock filtering to use stock > 0.
+## Implemented
+- NextAuth authentication for dashboard/admin routes and server-side admin role checks.
+- Product catalog public GET is read-only and excludes unpublished products.
+- Protected product CRUD, categories/tags mutations, and store-settings PUT.
+- Product input validation with Zod and extracted service layer.
+- Product type selector (PHYSICAL/DIGITAL) in admin form.
+- Physical items require a positive weight; digital items do not require shipping dimensions.
+- Prisma enum and backward-compatible migration; old products default to PHYSICAL.
+- Shared product response type; fix publish toggle and stock filtering.
 
-## Migration
-Back up the production database first. Then run:
+## Required validation before merging
+This branch has not been built, deployed, or tested against a database in the present environment.
+Clone the branch and configure local environment variables, then run:
 
 ```bash
 npm install
-npx prisma migrate deploy
+npx prisma validate
 npx prisma generate
+npx prisma migrate deploy
+npx tsc --noEmit
 npm run build
 ```
 
-Ensure DATABASE_URL, DIRECT_URL, NEXTAUTH_SECRET and NEXTAUTH_URL are configured. Never commit .env files.
+Use a disposable or backed-up test database for the migration. Do not execute migration against production until verified.
 
-## Required verification
-1. Unauthenticated users cannot modify products, categories or tags.
-2. Admin can sign in, create/edit/delete products, categories and tags.
-3. Publishing/unpublishing affects public catalog visibility.
-4. Existing products remain PHYSICAL after migration.
-5. Confirm create/edit, search, and storefront on a test database.
+### Manual regression checks
+1. Signed-out POST/PUT/PATCH/DELETE to admin endpoints and PUT /api/settings are rejected.
+2. Signed-in admin can create, edit, unpublish, and delete physical and digital products.
+3. Physical products require weight; digital products accept weight 0.
+4. Categories and tags can be created/edited/deleted by admin and not by anonymous users.
+5. Public product APIs exclude unpublished items.
+6. Existing products retain all data after migration and default to PHYSICAL.
+7. Admin can update store settings.
+8. Inspect all remaining routes for authorization gaps.
 
-## Remaining work
-- Audit other public mutation endpoints beyond products/categories/tags.
-- Add Zod schemas and business-layer validation for all mutations.
-- Add digital product selection to admin form.
-- Write automated authorization and integration tests.
-- Verify the application build and migrations against a test database before merging.
+## Not part of Phase 1
+Cart, checkout, payment, shipping API, digital fulfillment and file storage.
