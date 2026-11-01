@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useEffect, useState } from "react";
-import { ProductsType } from "./dashboard/product/page";
+import type { ProductsType } from "@/types/products";
 
 export default function Home() {
   const router = useRouter();
