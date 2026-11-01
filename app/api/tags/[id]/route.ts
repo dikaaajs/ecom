@@ -47,7 +47,7 @@ export async function DELETE(
   if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const { id } = await params;
   await prisma.tag.delete({
-    where: { id: params.id },
+    where: { id: id },
   });
 
   return NextResponse.json({ message: "Tag deleted" });
