@@ -6,15 +6,16 @@ import slugify from "slugify";
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
   if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { id } = await params;
   const body = await req.json();
 
   try {
     const tag = await prisma.tag.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name: body.name,
         slug: slugify(body.name, { lower: true }),
@@ -40,10 +41,11 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
   if (session?.user?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { id } = await params;
   await prisma.tag.delete({
     where: { id: params.id },
   });
