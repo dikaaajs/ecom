@@ -28,7 +28,7 @@ export function ProductCard({
   stock,
 }: ProductCardProps) {
   const content = (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.035)] transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_14px_35px_rgba(15,23,42,0.10)]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.035)] transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_14px_35px_rgba(15,23,42,0.10)]">
       <div className="relative aspect-square overflow-hidden bg-slate-50">
         <img
           src={imageUrl || "/placeholder.svg"}
@@ -37,7 +37,7 @@ export function ProductCard({
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
         {type && (
-          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-lg border border-white/70 bg-white/95 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 shadow-sm sm:text-xs">
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-lg border border-white/70 bg-white/95 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 shadow-sm sm:text-xs">
             {type === "DIGITAL" ? <Sparkles size={13} /> : <Package size={13} />}
             {type === "DIGITAL" ? "Digital" : "Physical"}
           </span>
@@ -45,7 +45,7 @@ export function ProductCard({
       </div>
       <div className="flex flex-1 flex-col gap-2.5 p-3 sm:p-4">
         <div>
-          {categoryName && <p className="mb-1.5 truncate text-[11px] font-semibold text-emerald-700">{categoryName}</p>}
+          {categoryName && <p className="mb-1.5 truncate text-[11px] font-semibold text-blue-700">{categoryName}</p>}
           <h3 className="line-clamp-2 min-h-[2.75rem] text-sm font-semibold leading-snug text-slate-800 sm:text-[15px]">{title}</h3>
         </div>
         <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">{description || "Explore this product in our collection."}</p>
@@ -70,7 +70,7 @@ export function ProductCard({
             ))}
           </div>
         )}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs font-bold text-emerald-700">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs font-bold text-blue-700">
           <span>View details</span>
           <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         </div>
@@ -79,7 +79,7 @@ export function ProductCard({
   );
 
   return id ? (
-    <Link href={"/product/" + id} className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+    <Link href={"/product/" + id} className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
       {content}
     </Link>
   ) : content;
