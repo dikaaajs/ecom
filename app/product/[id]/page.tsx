@@ -70,7 +70,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
           </section>
         )}
       </main>
-      <Footer />
+      <Footer compact />
     </div>
   );
 }
