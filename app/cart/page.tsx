@@ -98,15 +98,15 @@ export default function CartPage() {
               {quote && !quoteStale && quote.delivery.shippingRequired && !quote.shippingOriginConfigured && (
                 <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Shipping setup is incomplete.</strong> The store has not configured its shipping origin. Physical checkout is unavailable; please contact the store.</div>
               )}
+              {quote && !quoteStale && !quote.digitalAssetReady && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Digital delivery not ready.</strong> One or more digital products do not have a private file uploaded yet. The store must configure the file before payment can be enabled.</div>
+              )}
               {quote && !quoteStale && quote.valid ? (
                 <Link href="/checkout" className="storefront-btn-primary mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white">
                   {quote.delivery.shippingRequired ? "Isi alamat pembeli" : "Tinjau checkout digital"}
                 </Link>
               ) : (
-                {quote && !quoteStale && !quote.digitalAssetReady && (
-                <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Digital delivery not ready.</strong> One or more digital products do not have a private file uploaded yet. The store must configure the file before payment can be enabled.</div>
-              )}
-              <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">Menunggu verifikasi keranjang</button>
+                <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">Menunggu verifikasi keranjang</button>
               )}
               <p className="mt-3 text-xs leading-relaxed text-slate-500">Tahap berikutnya hanya pratinjau alamat/ringkasan. Checkout dan pembayaran belum diaktifkan; belum ada order yang akan dibuat.</p>
             </aside>
