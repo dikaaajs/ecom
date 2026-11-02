@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import L, { type Map as LeafletMap, type Marker as LeafletMarker } from "leaflet";
 
 type Coords = { latitude: number; longitude: number };
-type Props = { value: Coords | null; onChange: (coords: Coords) => void };
+type Props = { value: Coords | null; onChange: (coords: Coords) => void; ariaLabel?: string };
 
 const fallback: [number, number] = [-2.5489, 118.0149];
 const bounds: L.LatLngBoundsExpression = [[-11.5, 94], [6.5, 142]];
@@ -21,7 +21,7 @@ const roundedCoords = (latitude: number, longitude: number): Coords => ({
   longitude: Number(longitude.toFixed(6)),
 });
 
-export default function OriginMap({ value, onChange }: Props) {
+export default function OriginMap({ value, onChange, ariaLabel = "Peta lokasi asal pengiriman. Klik peta untuk memasang pin atau geser pin untuk menyesuaikan." }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<LeafletMarker | null>(null);
@@ -97,7 +97,7 @@ export default function OriginMap({ value, onChange }: Props) {
     <div
       ref={containerRef}
       role="application"
-      aria-label="Peta lokasi asal pengiriman. Klik lokasi pada peta untuk memasang pin, atau geser pin untuk menyesuaikan."
+      aria-label={ariaLabel}
       className="shipping-origin-map h-[320px] w-full rounded-2xl sm:h-[410px]"
     />
   );
