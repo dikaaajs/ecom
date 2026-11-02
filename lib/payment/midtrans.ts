@@ -114,3 +114,35 @@ export function classifyNotification(note: MidtransNotification): PaymentOutcome
   if (["pending", "authorize"].includes(status)) return "PENDING";
   return "UNHANDLED";
 }
+
+/** Backend-only status reconciliation, useful when webhooks cannot reach localhost. */
+export async function fetchMidtransStatus(orderNumber: string): Promise<MidtransNotification | null> {
+  const { key, production } = config();
+  if (!/^[A-Za-z0-9-]{5,80}$/.test(orderNumber)) throw new MidtransError("Invalid order reference", 400);
+  const endpoint = production
+    ? "https://api.midtrans.com"
+    : "https://api.sandbox.midtrans.com";
+  const abort = new AbortController();
+  const timeout = setTimeout(() => abort.abort(), 10000);
+  try {
+    const response = await fetch(endpoint + "/v2/" + encodeURIComponent(orderNumber) + "/status", {
+      headers: {
+        Authorization: "Basic " + Buffer.from(key + ":").toString("base64"),
+        Accept: "application/json",
+      },
+      signal: abort.signal, cache: "no-store",
+    });
+    if (response.status === 404) return null; // Payment channel not yet selected.
+    if (!response.ok) throw new MidtransError("Tidak dapat memverifikasi pembayaran di Midtrans.");
+    const parsed = notificationSchema.safeParse(await response.json());
+    if (!parsed.success || parsed.data.order_id !== orderNumber || !verifyMidtransSignature(parsed.data)) {
+      throw new MidtransError("Respons status Midtrans tidak terverifikasi.", 502);
+    }
+    return parsed.data;
+  } catch (error) {
+    if (error instanceof MidtransError) throw error;
+    throw new MidtransError("Gagal menghubungi status Midtrans.");
+  } finally {
+    clearTimeout(timeout);
+  }
+}
