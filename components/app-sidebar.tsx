@@ -71,8 +71,8 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "#",
+      title: "Alamat Pengirim",
+      url: "/dashboard/settings/shipping",
       icon: SettingsIcon,
     },
     {
