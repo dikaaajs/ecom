@@ -75,6 +75,25 @@ export default function OrderConfirmationPage() {
     return () => controller.abort();
   }, [load]);
 
+  const refreshStatus = async () => {
+    if (!session) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/checkout/orders/" + encodeURIComponent(session.orderId) + "/refresh", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + session.accessToken },
+        cache: "no-store",
+      });
+      const result: { error?: string } = await response.json();
+      if (!response.ok) throw new Error(result.error || "Tidak dapat memeriksa status Midtrans.");
+      await load(session);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Gagal memuat status.");
+      setLoading(false);
+    }
+  };
+
   const paid = !!order && ["PAID", "PROCESSING", "SHIPPED", "COMPLETED"].includes(order.status);
   const pending = order?.status === "PENDING_PAYMENT";
   const redirectUrl = order?.payment?.redirectUrl;
@@ -120,7 +139,7 @@ export default function OrderConfirmationPage() {
               {paid ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
                 Pembayaran tercatat di server. Pesanan fisik dapat diproses admin. Akses file digital masih memerlukan verifikasi identitas pembeli sebelum dapat diberikan.
               </p> : <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-                Status hanya diperbarui oleh webhook Midtrans yang terverifikasi, bukan dari tampilan selesai bayar.
+                Status diperbarui melalui webhook atau pemeriksaan langsung ke Midtrans dari server, bukan hanya berdasarkan tampilan selesai bayar.
               </p>}
               {pending && trustedPaymentUrl && (
                 <button type="button" onClick={() => window.location.assign(redirectUrl!)}
@@ -131,7 +150,7 @@ export default function OrderConfirmationPage() {
             </>
           ) : null}
           <div className="mt-5 flex flex-wrap gap-4">
-            {session && <button onClick={() => void load(session)} type="button" disabled={loading}
+            {session && <button onClick={() => void refreshStatus()} type="button" disabled={loading}
               className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50">
               <RefreshCw size={15}/> Periksa status terbaru
             </button>}
