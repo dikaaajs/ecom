@@ -103,7 +103,11 @@ export function BuyerAddressForm() {
     setMessage("");
     const parsed = buyerAddressSchema.safeParse(draft);
     if (!parsed.success) {
-      setErrors(parsed.error.flatten().fieldErrors);
+      const fieldErrors: Record<string, string[]> = {};
+      for (const [key, messages] of Object.entries(parsed.error.flatten().fieldErrors)) {
+        if (messages) fieldErrors[key] = messages;
+      }
+      setErrors(fieldErrors);
       setSaved(false);
       setMessage("Periksa kembali kolom yang diberi tanda merah.");
       return;
@@ -180,7 +184,7 @@ export function BuyerAddressForm() {
         {draft.latitude !== null && draft.longitude !== null && (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-800">
             <span>Pin: {draft.latitude.toFixed(6)}, {draft.longitude.toFixed(6)}</span>
-            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); }}>Hapus pin</button>
+            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); setMessage(""); }}>Hapus pin</button>
           </div>
         )}
       </div>
