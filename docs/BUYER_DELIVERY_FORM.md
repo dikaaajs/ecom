@@ -14,7 +14,7 @@
 ## Manual test checklist
 1. Pull `feat/phase-5-shipping-digital-delivery`, run `npx prisma generate`, `npx tsc --noEmit`, `npm run build`.
 2. Add a physical item; on `/cart`, click **Isi alamat pembeli** and verify the form opens at `/checkout`.
-3. Submit an empty form; check required fields. Test malformed email, phone, or postal code (must be five digits).
+3. Choose province → city → district using the live dropdowns; verify downstream options reset after changing province/city, and missing API credentials produce a useful error. Submit an empty form; check required fields. Test malformed email, phone, or postal code (must be five digits).
 4. Fill form, optionally click and drag map pin, select **Simpan alamat sementara**. Reload checkout in the **same tab**; values and pin should persist.
 5. Click **Hapus**; reload and confirm no stored draft remains.
 6. Disable browser geolocation; use the optional map manually, or leave pin unset and still save a valid written address.
@@ -28,5 +28,5 @@
 ## Privacy & integration boundaries
 - This is a **temporary guest draft**, not a verified shipping address or a permanent customer profile. SessionStorage is readable by scripts on the same origin, so avoid third-party scripts with unnecessary privileges. For production, implement a customer identity flow, secure server-side validation, consent-aware persistence and retention policies.
 - Client validation does not replace server validation: future order creation must validate the recipient, phone, address and provider territory IDs against trusted data.
-- Province/city/district fields are **free text for preview**. They are not RajaOngkir territory IDs. The actual shipping-rate integration must use selectable verified provider locations.
+- Province/city/district are now cascading dropdowns from RajaOngkir Shipping Cost API; draft stores **both region names and numeric provider IDs**. The provider key stays on the server. Guest drafts are not yet revalidated server-side because order creation is disabled; future order creation **must** call trusted provider validation before quoting rates or saving an order.
 - Never put customer PII in URLs, analytics, console logs, public site settings, or a git repository.
