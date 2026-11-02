@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { regionSelectionSchema } from "@/lib/shipping/regions";
 
 /**
  * Guest delivery details are a draft only. They must be validated again on the
@@ -11,8 +12,11 @@ export const buyerAddressSchema = z.object({
   phone: z.string().trim().regex(/^\+?[0-9][0-9\s()-]{6,19}$/, "Nomor HP tidak valid").max(20),
   email: z.email("Alamat email tidak valid").max(200),
   province: z.string().trim().min(2, "Provinsi wajib diisi").max(100),
+  provinceId: regionSelectionSchema.shape.provinceId,
   city: z.string().trim().min(2, "Kota/kabupaten wajib diisi").max(100),
+  cityId: regionSelectionSchema.shape.cityId,
   district: z.string().trim().min(2, "Kecamatan wajib diisi").max(100),
+  districtId: regionSelectionSchema.shape.districtId,
   village: z.string().trim().min(2, "Kelurahan/desa wajib diisi").max(100),
   postalCode: z.string().trim().regex(/^[0-9]{5}$/, "Kode pos harus 5 angka"),
   addressLine: z.string().trim().min(8, "Alamat lengkap minimal 8 karakter").max(300),
@@ -27,7 +31,7 @@ export const buyerAddressSchema = z.object({
 export type BuyerAddress = z.infer<typeof buyerAddressSchema>;
 
 export const emptyBuyerAddress: BuyerAddress = {
-  recipient: "", phone: "", email: "", province: "", city: "",
-  district: "", village: "", postalCode: "", addressLine: "",
+  recipient: "", phone: "", email: "", province: "", provinceId: 0, city: "", cityId: 0,
+  district: "", districtId: 0, village: "", postalCode: "", addressLine: "",
   notes: "", latitude: null, longitude: null,
 };
