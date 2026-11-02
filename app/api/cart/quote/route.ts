@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { summarizeDelivery } from "@/lib/delivery";
 export const dynamic = "force-dynamic";
 const inputSchema = z.object({
   items: z.array(z.object({ productId: z.string().min(1).max(128), quantity: z.number().int().min(1).max(99) })).min(1).max(50),
@@ -32,8 +33,13 @@ export async function POST(req: Request) {
     });
     const valid = lines.every(line => line.available);
     const subtotal = lines.reduce((sum, line) => sum + (line.available && "lineTotal" in line ? Number(line.lineTotal) : 0), 0);
+    const delivery = summarizeDelivery(items.flatMap(item => {
+      const product = byId.get(item.productId);
+      return product ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
+    }));
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
+      delivery,
       shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
       note: "Quote only. Shipping and payments are not yet implemented. Prices and stock will be revalidated at checkout.",
