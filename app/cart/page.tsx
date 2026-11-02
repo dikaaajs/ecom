@@ -10,7 +10,7 @@ type QuoteLine = {
   title?: string; imageUrl?: string | null; type?: "PHYSICAL" | "DIGITAL";
   unitPrice?: string; lineTotal?: string;
 };
-type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null; delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean; shippingStatus: string }; shippingOriginConfigured: boolean; checkoutReady: boolean; checkoutBlockers: string[] };
+type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null; delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean; shippingStatus: string }; shippingOriginConfigured: boolean; checkoutReady: boolean; checkoutBlockers: string[]; digitalAssetReady: boolean };
 
 const rupiah = (value: number | string) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value));
 
@@ -103,7 +103,10 @@ export default function CartPage() {
                   {quote.delivery.shippingRequired ? "Isi alamat pembeli" : "Tinjau checkout digital"}
                 </Link>
               ) : (
-                <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">Menunggu verifikasi keranjang</button>
+                {quote && !quoteStale && !quote.digitalAssetReady && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Digital delivery not ready.</strong> One or more digital products do not have a private file uploaded yet. The store must configure the file before payment can be enabled.</div>
+              )}
+              <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">Menunggu verifikasi keranjang</button>
               )}
               <p className="mt-3 text-xs leading-relaxed text-slate-500">Tahap berikutnya hanya pratinjau alamat/ringkasan. Checkout dan pembayaran belum diaktifkan; belum ada order yang akan dibuat.</p>
             </aside>
