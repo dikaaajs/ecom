@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { regionSelectionSchema } from "@/lib/shipping/regions";
 
 export const SHIPPING_ORIGIN_SETTING_KEY = "shippingOrigin";
 
@@ -17,9 +18,18 @@ export const shippingOriginSchema = z.object({
   notes: z.string().trim().max(300),
 }).strict();
 
-export const savedShippingOriginSchema = shippingOriginSchema.extend({
+export const legacyShippingOriginSchema = shippingOriginSchema;
+
+// Persist authoritative provider IDs in addition to human-readable names.
+export const shippingOriginWithRegionsSchema = legacyShippingOriginSchema.safeExtend({
+  provinceId: regionSelectionSchema.shape.provinceId,
+  cityId: regionSelectionSchema.shape.cityId,
+  districtId: regionSelectionSchema.shape.districtId,
+});
+
+export const savedShippingOriginSchema = shippingOriginWithRegionsSchema.extend({
   updatedAt: z.string().datetime(),
 });
 
-export type ShippingOriginInput = z.infer<typeof shippingOriginSchema>;
+export type ShippingOriginInput = z.infer<typeof shippingOriginWithRegionsSchema>;
 export type SavedShippingOrigin = z.infer<typeof savedShippingOriginSchema>;
