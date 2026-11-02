@@ -10,7 +10,7 @@ type QuoteLine = {
   title?: string; imageUrl?: string | null; type?: "PHYSICAL" | "DIGITAL";
   unitPrice?: string; lineTotal?: string;
 };
-type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null };
+type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null; delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean; shippingStatus: string } };
 
 const rupiah = (value: number | string) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value));
 
@@ -19,15 +19,17 @@ export default function CartPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [quoteStale, setQuoteStale] = useState(false);
   const load = useCallback(async (signal?: AbortSignal) => {
-    if (!items.length) { setQuote(null); setError(""); return; }
+    if (!items.length) { setQuote(null); setError(""); setQuoteStale(false); return; }
+    setQuoteStale(true);
     setLoading(true);
     setError("");
     try {
       const res = await fetch("/api/cart/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items }), cache: "no-store", signal });
       if (!res.ok) throw new Error("Failed to fetch prices");
       const data = await res.json();
-      if (!signal?.aborted) setQuote(data);
+      if (!signal?.aborted) { setQuote(data); setQuoteStale(false); }
     } catch {
       if (!signal?.aborted) { setQuote(null); setError("Unable to verify product prices. Try again."); }
     } finally {
@@ -86,9 +88,12 @@ export default function CartPage() {
             <aside className="h-fit rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold">Order summary</h2>
               <div className="mt-5 flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><strong>{quote ? rupiah(quote.subtotal) : "—"}</strong></div>
-              <div className="mt-3 flex justify-between text-sm"><span className="text-slate-500">Shipping</span><strong>Not calculated</strong></div>
+              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Physical items</span><strong>{quote && !quoteStale ? quote.delivery.physicalCount : "—"}</strong></div>
+              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Digital items</span><strong>{quote && !quoteStale ? quote.delivery.digitalCount : "—"}</strong></div>
+              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Total shipping weight</span><strong>{quote && !quoteStale ? (quote.delivery.shippingRequired ? new Intl.NumberFormat("id-ID").format(quote.delivery.totalWeightGram) + " gram" : "Not required") : "—"}</strong></div>
+              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Shipping cost</span><strong>{quote && !quoteStale ? (quote.delivery.shippingRequired ? "Pending courier rate" : rupiah(0)) : "—"}</strong></div>
               <div className="mt-4 border-t pt-4 text-sm text-slate-500">
-                {quote?.shippingRequired ? "Physical items require shipping calculation at checkout." : "Digital-only items do not require shipping."}
+                {!quote || quoteStale ? "Verifying delivery requirements..." : !quote.valid ? "Some items are unavailable. Please update the cart before checkout." : quote.delivery.shippingRequired ? "Physical items require a delivery address and courier rate at checkout." : "Digital-only items do not require shipping."}
               </div>
               <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">
                 Checkout coming soon
