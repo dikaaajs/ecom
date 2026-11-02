@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/stack/product-card";
 import { Footer } from "@/components/stack/footer";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +57,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
             <p className="text-sm">{product.type === "DIGITAL" ? "Digital product · No shipping required" : "Physical product · Shipping calculated at checkout"}</p>
             <p className="text-sm">{product.stock > 0 ? `In stock: ${product.stock}` : "Out of stock"}</p>
             <p className="text-gray-700 whitespace-pre-wrap">{product.description || "No description available."}</p>
-            <p className="text-sm text-muted-foreground">Shopping cart and checkout will be implemented in the next phase.</p>
+            <AddToCartButton id={product.id} disabled={product.stock <= 0} />
           </section>
         </div>
         {related.length > 0 && (

@@ -13,12 +13,14 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { forwardRef, useEffect, useState } from "react";
+import { useCart } from "@/components/cart/cart-provider";
 import { usePathname, useRouter } from "next/navigation";
 
 export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(pathname == "/" ? false : true);
   const router = useRouter();
+  const { count, ready } = useCart();
 
   useEffect(() => {
     if (pathname !== "/") {
@@ -76,11 +78,12 @@ export function Navbar() {
         <SheetContent side="right">
           <div className="flex flex-col gap-4 mt-8">
             <Link
-              href="#"
+              href="/product"
               className="px-2 py-2 text-lg font-medium transition-colors hover:text-primary"
             >
               Explore
             </Link>
+            <Link href="/cart" className="flex items-center gap-2 px-2 py-2 text-lg font-medium"><ShoppingCart size={19} /> Cart {ready && count > 0 ? `(${count})` : ""}</Link>
           </div>
         </SheetContent>
       </Sheet>
@@ -97,9 +100,10 @@ export function Navbar() {
 
           {/* co */}
           <NavigationMenuItem>
-            <Button variant={"ghost"} className="cursor-pointer">
-              <ShoppingCart />
-            </Button>
+            <Link href="/cart" className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition hover:bg-blue-50 hover:text-blue-600" aria-label="View cart">
+              <ShoppingCart size={20} />
+              {ready && count > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white">{count}</span>}
+            </Link>
           </NavigationMenuItem>
 
           <NavigationMenuItem>

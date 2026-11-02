@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "create-admin": "tsx scripts/create-admin.ts"
+    "create-admin": "tsx scripts/create-admin.ts",
+    "db:seed:preview": "tsx prisma/seed-preview.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
