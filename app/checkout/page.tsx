@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CheckCircle2, CreditCard, Download, MapPin, Package, ShoppingBag, Truck } from "lucide-react";
 import { Footer } from "@/components/stack/footer";
 import { BuyerAddressForm } from "@/components/shipping/buyer-address-form";
+import type { SelectedShippingRate } from "@/components/shipping/shipping-rate-picker";
 import { useCart } from "@/components/cart/cart-provider";
 
 type QuoteLine = {
@@ -27,6 +28,7 @@ const formatPrice = (price: number | string) => new Intl.NumberFormat("id-ID", {
 export default function CheckoutPage() {
   const { ready, items } = useCart();
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [selectedRate, setSelectedRate] = useState<SelectedShippingRate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
@@ -35,6 +37,7 @@ export default function CheckoutPage() {
     setLoading(true);
     setError("");
     setQuote(null);
+    setSelectedRate(null);
     try {
       const response = await fetch("/api/cart/quote", {
         method: "POST",
@@ -103,7 +106,7 @@ export default function CheckoutPage() {
                       <div><strong>Pengiriman toko belum dikonfigurasi.</strong><p className="mt-1 leading-6">Kamu boleh mengisi draft alamat, tetapi ongkir dan pembelian produk fisik tetap tidak bisa diproses sampai penjual mengatur alamat asal.</p></div>
                     </div>
                   )}
-                  <BuyerAddressForm/>
+                  <BuyerAddressForm items={items} originConfigured={quote.shippingOriginConfigured} onRateChange={setSelectedRate}/>
                 </>
               ) : (
                 <div className="rounded-2xl border border-emerald-200 bg-white p-7 shadow-sm">
@@ -139,10 +142,19 @@ export default function CheckoutPage() {
               </div>
               <div className="mt-4 flex justify-between gap-4 text-sm"><span className="text-slate-500">Subtotal</span><strong>{formatPrice(quote.subtotal)}</strong></div>
               <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Berat paket</span><strong>{quote.delivery.shippingRequired ? quote.delivery.totalWeightGram + " gram" : "Tidak perlu"}</strong></div>
-              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Ongkos kirim</span><strong>{quote.delivery.shippingRequired ? "Belum dihitung" : formatPrice(0)}</strong></div>
+              <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Ongkos kirim</span><strong>{quote.delivery.shippingRequired ? (selectedRate ? formatPrice(selectedRate.cost) : "Belum dipilih") : formatPrice(0)}</strong></div>
+              {selectedRate && quote.delivery.shippingRequired && (
+                <div role="status" className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
+                  <strong>{selectedRate.courier} · {selectedRate.service}</strong>
+                  <p>Tarif ditampilkan untuk pratinjau, bukan tagihan akhir.</p>
+                </div>
+              )}
+              {selectedRate && quote.delivery.shippingRequired && (
+                <div className="mt-3 flex justify-between gap-4 border-t border-slate-100 pt-3 text-sm"><span className="font-bold text-slate-800">Total estimasi</span><strong className="text-blue-700">{formatPrice(Number(selectedRate.subtotal) + selectedRate.cost)}</strong></div>
+              )}
               <div className="mt-5 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">
                 <MapPin size={15} className="mr-1 inline"/>
-                {quote.delivery.shippingRequired ? "Pilihan ekspedisi dan tarif ongkir akan aktif setelah integrasi RajaOngkir selesai." : "Pengiriman digital tidak membutuhkan jasa ekspedisi."}
+                {quote.delivery.shippingRequired ? "Setelah menyimpan draft alamat, tekan Cek ongkir dan pilih layanan ekspedisi. Tarif dapat berubah sebelum pembayaran." : "Pengiriman digital tidak membutuhkan jasa ekspedisi."}
               </div>
               <button type="button" disabled className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-200 px-4 py-3 font-bold text-slate-500"><CreditCard size={18}/> Pembayaran belum tersedia</button>
               <p className="mt-3 text-xs leading-5 text-slate-500">Penyimpanan alamat sementara tidak membuat order, tidak mengurangi stok, dan tidak memproses pembayaran.</p>
