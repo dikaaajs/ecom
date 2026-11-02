@@ -45,3 +45,32 @@ Select a shipping rate provider and configure its credentials via environment va
 4. Save valid address and map pin in admin, reload dashboard: green notice appears.
 5. Physical quote has `shippingOriginConfigured: true` and still reports missing courier rates (until provider integration).
 6. Public `/api/settings` and `/api/cart/quote` do not expose sender phone, warehouse street, or coordinates.
+
+## Private digital assets / merchant file management (latest)
+
+- Dashboard → **File Digital** at `/dashboard/digital-assets` lists digital
+  products, shows file readiness, and permits authenticated admin uploads.
+- Admin GET/POST `/api/admin/digital-assets` requires role `admin`. API output
+  includes safe filenames/status only, **not** storage paths or signed URLs.
+- Files are uploaded into a verified **private** Supabase Storage bucket and
+  associated with a `DigitalAsset` database record.
+- Current supported formats: PDF, ZIP, PNG, JPEG, WEBP. Small upload cap: **4 MiB**.
+  The backend checks the file signature and type and generates a random object path.
+- Upload of replacements is blocked for products with paid/fulfilled orders until
+  versioned assets exist, avoiding silent changes to historical purchases.
+- Cart quote exposes `digitalAssetReady` and `DIGITAL_ASSET_MISSING` when needed;
+  no buyer-facing file URL or access token is exposed.
+- **Buyer download is intentionally not yet enabled**. In Fase 6, verified payment
+  webhook + buyer authentication + ownership checks must precede short-lived
+  private download URLs. An order number or email alone must never authorize access.
+- Configuration and test checklist: `docs/DIGITAL_DELIVERY_SETUP.md`.
+
+### Before merging latest work
+1. Create **private** Supabase Storage bucket `digital-products`.
+2. Configure `SUPABASE_SERVICE_ROLE_KEY` server-side; optionally set
+   `SUPABASE_DIGITAL_BUCKET` if using another bucket name.
+3. Test admin file upload, refresh persistence, rejection of invalid files and
+   unauthenticated requests; confirm the object is not publicly accessible.
+4. Test cart/checkout notice for a digital product with no file.
+5. Run `npx prisma generate`, `npx tsc --noEmit`, `npm run build`, and
+   confirm Vercel preview checks before merge.
