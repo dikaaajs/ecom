@@ -5,6 +5,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, LocateFixed, MapPin, Save, Trash2 } from "lucide-react";
 import { RegionSelector } from "@/components/shipping/region-selector";
 import type { RegionSelection } from "@/lib/shipping/regions";
+import type { CartItem } from "@/lib/cart";
+import { ShippingRatePicker, type SelectedShippingRate } from "@/components/shipping/shipping-rate-picker";
 import {
   BUYER_ADDRESS_DRAFT_KEY, buyerAddressSchema,
   emptyBuyerAddress, type BuyerAddress,
@@ -31,7 +33,11 @@ const fields: Array<{ name: Field; label: string; hint: string; required?: boole
 
 const inputClass = "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
-export function BuyerAddressForm() {
+export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
+  items: CartItem[];
+  originConfigured: boolean;
+  onRateChange: (rate: SelectedShippingRate | null) => void;
+}) {
   const [draft, setDraft] = useState<BuyerAddress>(emptyBuyerAddress);
   const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -62,6 +68,7 @@ export function BuyerAddressForm() {
     setDraft(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: [] }));
     setSaved(false);
+    onRateChange(null);
     setMessage("");
   };
   const setRegion = (region: RegionSelection) => {
@@ -131,6 +138,7 @@ export function BuyerAddressForm() {
     try { sessionStorage.removeItem(BUYER_ADDRESS_DRAFT_KEY); } catch {}
     setDraft({ ...emptyBuyerAddress });
     setSaved(false);
+    onRateChange(null);
     setErrors({});
     setMessage("Alamat sementara telah dikosongkan.");
   };
@@ -191,7 +199,7 @@ export function BuyerAddressForm() {
         {draft.latitude !== null && draft.longitude !== null && (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-800">
             <span>Pin: {draft.latitude.toFixed(6)}, {draft.longitude.toFixed(6)}</span>
-            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); setMessage(""); }}>Hapus pin</button>
+            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); onRateChange(null); setMessage(""); }}>Hapus pin</button>
           </div>
         )}
       </div>
@@ -200,6 +208,10 @@ export function BuyerAddressForm() {
         <button type="submit" className="storefront-btn-primary inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold"><Save size={17}/> Simpan alamat sementara</button>
         <button type="button" onClick={clear} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"><Trash2 size={16}/> Hapus</button>
       </div>
+      {saved && <ShippingRatePicker items={items} originConfigured={originConfigured}
+        destination={{ province: draft.province, provinceId: draft.provinceId,
+          city: draft.city, cityId: draft.cityId, district: draft.district, districtId: draft.districtId }}
+        onChange={onRateChange} />}
       <p className="mt-4 text-xs leading-5 text-slate-500">Data hanya disimpan di sessionStorage tab ini, tidak dikirim ke database dan belum menjadi pesanan. Tutup tab untuk mengakhiri sesi. Alamat dan lokasi akan divalidasi ulang saat checkout sungguhan tersedia.</p>
     </form>
   );
