@@ -20,6 +20,7 @@ type Quote = {
   delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean };
   shippingOriginConfigured: boolean;
   checkoutReady: boolean;
+  paymentConfigured: boolean;
   checkoutBlockers: string[];
   digitalAssetReady: boolean;
 };
@@ -128,7 +129,7 @@ export default function CheckoutPage() {
     : digitalContact.recipient.trim().length >= 2 &&
       /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(digitalContact.email) &&
       digitalContact.phone.trim().length >= 8;
-  const canPay = !!quote?.valid && quote.digitalAssetReady && !!contactReady &&
+  const canPay = !!quote?.valid && quote.digitalAssetReady && quote.paymentConfigured && !!contactReady &&
     (!quote.delivery.shippingRequired || (quote.shippingOriginConfigured && !!selectedRate));
 
   return (
@@ -238,6 +239,7 @@ export default function CheckoutPage() {
               {selectedRate && quote.delivery.shippingRequired && (
                 <div className="mt-3 flex justify-between gap-4 border-t border-slate-100 pt-3 text-sm"><span className="font-bold text-slate-800">Total estimasi</span><strong className="text-blue-700">{formatPrice(Number(selectedRate.subtotal) + selectedRate.cost)}</strong></div>
               )}
+              {!quote.paymentConfigured && <p role="alert" className="mt-4 rounded-lg bg-amber-50 p-3 text-xs leading-5 text-amber-900">Midtrans belum dikonfigurasi di server. Hubungi penjual untuk mengaktifkan pembayaran sandbox.</p>}
               <div className="mt-5 rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-900">
                 <MapPin size={15} className="mr-1 inline"/>
                 {quote.delivery.shippingRequired ? "Setelah menyimpan draft alamat, tekan Cek ongkir dan pilih layanan ekspedisi. Tarif dapat berubah sebelum pembayaran." : "Pengiriman digital tidak membutuhkan jasa ekspedisi."}
