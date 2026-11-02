@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionCards } from "@/components/section-cards";
+import { ShippingSetupNotice } from "@/components/shipping/shipping-setup-notice";
 import data from "./data.json";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useState } from "react";
@@ -41,6 +42,7 @@ export default function Page() {
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="px-4 lg:px-6"><ShippingSetupNotice /></div>
           <SectionCards />
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive />
