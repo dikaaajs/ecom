@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { summarizeDelivery } from "@/lib/delivery";
+import { getSavedShippingOrigin } from "@/lib/shipping/get-origin";
 export const dynamic = "force-dynamic";
 const inputSchema = z.object({
   items: z.array(z.object({ productId: z.string().min(1).max(128), quantity: z.number().int().min(1).max(99) })).min(1).max(50),
@@ -37,8 +38,16 @@ export async function POST(req: Request) {
       const product = byId.get(item.productId);
       return product && product.stock >= item.quantity ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
     }));
+    const shippingOriginConfigured = delivery.shippingRequired ? (await getSavedShippingOrigin()) !== null : true;
+    const checkoutBlockers = [
+      ...(!valid ? ["INVALID_CART"] : []),
+      ...(delivery.shippingRequired && !shippingOriginConfigured ? ["SHIPPING_ORIGIN_MISSING"] : []),
+      ...(delivery.shippingRequired ? ["SHIPPING_RATE_UNAVAILABLE"] : []),
+      "CHECKOUT_NOT_IMPLEMENTED",
+    ];
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
+      shippingOriginConfigured, checkoutReady: false, checkoutBlockers,
       delivery,
       shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
