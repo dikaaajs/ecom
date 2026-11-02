@@ -138,7 +138,7 @@ export default function CatalogPage() {
                 <button type="button" onClick={resetFilters} className="storefront-btn-primary mt-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white">View all products</button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 lg:gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filtered.map((product) => (
                   <ProductCard
                     key={product.id}
