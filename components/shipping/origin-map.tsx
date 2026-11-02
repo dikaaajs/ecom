@@ -45,7 +45,7 @@ export default function OriginMap({ value, onChange }: Props) {
       maxBounds={bounds}
       maxBoundsViscosity={1}
       scrollWheelZoom={false}
-      className="h-[320px] w-full rounded-2xl sm:h-[410px]"
+      className="shipping-origin-map h-[320px] w-full rounded-2xl sm:h-[410px]"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
