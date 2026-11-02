@@ -105,7 +105,7 @@ export function Navbar() {
           <NavigationMenuItem>
             <Button
               className={`cursor-pointer transition-colors ${
-                isScrolled ? "bg-black text-white" : "bg-white text-black"
+                isScrolled ? "storefront-btn-primary" : "bg-white text-blue-800 hover:bg-blue-50"
               }`}
             >
               <UserRound />
