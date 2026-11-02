@@ -127,7 +127,7 @@ export default function CheckoutPage() {
   const contactReady = quote?.delivery.shippingRequired
     ? !!savedAddress
     : digitalContact.recipient.trim().length >= 2 &&
-      /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(digitalContact.email) &&
+      /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(digitalContact.email) &&
       digitalContact.phone.trim().length >= 8;
   const canPay = !!quote?.valid && quote.digitalAssetReady && quote.paymentConfigured && !!contactReady &&
     (!quote.delivery.shippingRequired || (quote.shippingOriginConfigured && !!selectedRate));
