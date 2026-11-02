@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Globe, Map } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { products } from "./dummy";
 
 import {
   Accordion,
@@ -26,6 +25,7 @@ export default function Home() {
     count: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const getProducts = async () => {
     try {
@@ -38,6 +38,7 @@ export default function Home() {
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -105,11 +106,17 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products ? (
+            {loading ? (
+              <p>Loading products...</p>
+            ) : loadError ? (
+              <p role="alert">Failed to load products. Please refresh the page.</p>
+            ) : products.data.length > 0 ? (
               <>
                 {products.data.map((product: any) => (
                   <ProductCard
                     key={product.id}
+                    id={product.id}
+                    type={product.type}
                     title={product.title}
                     description={product.description}
                     tags={product.tags}
@@ -119,7 +126,7 @@ export default function Home() {
                 ))}
               </>
             ) : (
-              <div>loading</div>
+              <p>No published products yet.</p>
             )}
           </div>
         </div>
