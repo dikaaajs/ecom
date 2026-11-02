@@ -92,13 +92,14 @@ export default function CheckoutPage() {
         crypto.getRandomValues(bytes);
         checkoutTokenRef.current = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
       }
+      const accessToken = checkoutTokenRef.current;
       const response = await fetch("/api/checkout/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
         body: JSON.stringify({
           items,
-          accessToken: checkoutTokenRef.current,
+          accessToken,
           address: physical ? savedAddress : null,
           contact,
           shipping: physical && selectedRate ? {
@@ -113,7 +114,7 @@ export default function CheckoutPage() {
       const session: CheckoutSession = {
         orderId: result.orderId, orderNumber: result.orderNumber,
         redirectUrl: result.redirectUrl, sandbox: !!result.sandbox,
-        accessToken: checkoutTokenRef.current,
+        accessToken,
       };
       sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(session));
       // Payment status comes from the verified Midtrans webhook, NEVER from the redirect.
