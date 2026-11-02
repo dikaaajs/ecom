@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const subtotal = lines.reduce((sum, line) => sum + (line.available && "lineTotal" in line ? Number(line.lineTotal) : 0), 0);
     const delivery = summarizeDelivery(items.flatMap(item => {
       const product = byId.get(item.productId);
-      return product ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
+      return product && product.stock >= item.quantity ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
     }));
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
