@@ -45,21 +45,26 @@ export async function POST(req: Request) {
       const product = byId.get(item.productId);
       return product?.type === "DIGITAL" && product.stock >= item.quantity && !product.digitalAsset;
     }).length;
+    const paymentConfigured = !!process.env.MIDTRANS_SERVER_KEY &&
+      (process.env.MIDTRANS_IS_PRODUCTION !== "true" || process.env.MIDTRANS_ENABLE_LIVE_PAYMENTS === "true");
     const checkoutBlockers = [
       ...(!valid ? ["INVALID_CART"] : []),
       ...(delivery.shippingRequired && !shippingOriginConfigured ? ["SHIPPING_ORIGIN_MISSING"] : []),
-      ...(delivery.shippingRequired ? ["SHIPPING_RATE_UNAVAILABLE"] : []),
+      ...(delivery.shippingRequired ? ["SHIPPING_SELECTION_REQUIRED"] : []),
       ...(missingDigitalFiles > 0 ? ["DIGITAL_ASSET_MISSING"] : []),
-      "CHECKOUT_NOT_IMPLEMENTED",
+      ...(!paymentConfigured ? ["PAYMENT_PROVIDER_NOT_CONFIGURED"] : []),
     ];
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
-      shippingOriginConfigured, checkoutReady: false, checkoutBlockers,
+      shippingOriginConfigured, paymentConfigured,
+      // Physical checkout needs a destination and confirmed courier rate first.
+      checkoutReady: valid && !delivery.shippingRequired && missingDigitalFiles === 0 && paymentConfigured,
+      checkoutBlockers,
       digitalAssetReady: missingDigitalFiles === 0,
       delivery,
       shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
-      note: "Quote only. Shipping and payments are not yet implemented. Prices and stock will be revalidated at checkout.",
+      note: "Indicative quote. Final stock, product prices, shipping costs and provider status are validated again when an order is created.",
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Cart quote failed", error);

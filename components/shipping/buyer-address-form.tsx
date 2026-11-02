@@ -33,10 +33,11 @@ const fields: Array<{ name: Field; label: string; hint: string; required?: boole
 
 const inputClass = "mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
 
-export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
+export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddressSaved }: {
   items: CartItem[];
   originConfigured: boolean;
   onRateChange: (rate: SelectedShippingRate | null) => void;
+  onAddressSaved: (address: BuyerAddress | null) => void;
 }) {
   const [draft, setDraft] = useState<BuyerAddress>(emptyBuyerAddress);
   const [hydrated, setHydrated] = useState(false);
@@ -53,6 +54,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
         if (parsed.success) {
           setDraft(parsed.data);
           setSaved(true);
+          onAddressSaved(parsed.data);
         } else {
           sessionStorage.removeItem(BUYER_ADDRESS_DRAFT_KEY);
         }
@@ -68,6 +70,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
     setDraft(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: [] }));
     setSaved(false);
+    onAddressSaved(null);
     onRateChange(null);
     setMessage("");
   };
@@ -75,12 +78,16 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
     setDraft(prev => ({ ...prev, ...region }));
     setErrors(prev => ({ ...prev, province: [], provinceId: [], city: [], cityId: [], district: [], districtId: [] }));
     setSaved(false);
+    onAddressSaved(null);
+    onRateChange(null);
     setMessage("");
   };
   const setPin = (point: { latitude: number; longitude: number }) => {
     setDraft(prev => ({ ...prev, ...point }));
     setErrors(prev => ({ ...prev, latitude: [] }));
     setSaved(false);
+    onAddressSaved(null);
+    onRateChange(null);
     setMessage("");
   };
 
@@ -127,6 +134,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
       sessionStorage.setItem(BUYER_ADDRESS_DRAFT_KEY, JSON.stringify(parsed.data));
       setDraft(parsed.data);
       setSaved(true);
+      onAddressSaved(parsed.data);
       setMessage("Alamat disimpan sementara di tab browser ini. Belum ada pesanan yang dibuat.");
     } catch {
       setSaved(false);
@@ -138,6 +146,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
     try { sessionStorage.removeItem(BUYER_ADDRESS_DRAFT_KEY); } catch {}
     setDraft({ ...emptyBuyerAddress });
     setSaved(false);
+    onAddressSaved(null);
     onRateChange(null);
     setErrors({});
     setMessage("Alamat sementara telah dikosongkan.");
@@ -199,7 +208,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange }: {
         {draft.latitude !== null && draft.longitude !== null && (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-blue-50 px-3 py-2 text-xs text-blue-800">
             <span>Pin: {draft.latitude.toFixed(6)}, {draft.longitude.toFixed(6)}</span>
-            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); onRateChange(null); setMessage(""); }}>Hapus pin</button>
+            <button type="button" className="font-semibold underline" onClick={() => { setDraft(prev => ({ ...prev, latitude: null, longitude: null })); setSaved(false); onAddressSaved(null); onRateChange(null); setMessage(""); }}>Hapus pin</button>
           </div>
         )}
       </div>

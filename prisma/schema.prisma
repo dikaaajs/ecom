@@ -177,6 +177,9 @@ model Order {
   shippingCost Decimal?    @db.Decimal(12,2)
   total        Decimal?    @db.Decimal(12,2)
   notes        String?
+  checkoutAccessHash String? @unique
+  destinationDistrictId Int?
+  payment      PaymentTransaction?
   recipient    String?
   phone        String?
   addressLine  String?
@@ -250,4 +253,31 @@ model DigitalAsset {
   updatedAt   DateTime @updatedAt
 
   @@map("digital_assets")
+}
+
+// Midtrans payment record. Guest order access uses an unguessable token whose
+// SHA-256 hash is stored on Order, never the raw token.
+enum PaymentState {
+  INITIALIZING
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model PaymentTransaction {
+  id                String       @id @default(cuid())
+  orderId           String       @unique
+  order             Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String       @default("MIDTRANS")
+  providerOrderId   String       @unique
+  state             PaymentState @default(INITIALIZING)
+  amount            Decimal      @db.Decimal(12,2)
+  redirectUrl       String?
+  paidAt            DateTime?
+  lastNotificationAt DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([state, createdAt])
+  @@map("payment_transactions")
 }
