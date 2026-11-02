@@ -54,6 +54,11 @@ const data = {
       icon: Package,
     },
     {
+      title: "Orders",
+      url: "/dashboard/orders",
+      icon: ClipboardListIcon,
+    },
+    {
       title: "Analytics",
       url: "/dashboard/analytics",
       icon: BarChartIcon,
