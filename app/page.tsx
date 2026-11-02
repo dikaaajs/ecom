@@ -90,7 +90,7 @@ export default function Home() {
           </p>
           <div className="flex gap-5 justify-center">
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
+              className="storefront-btn-primary cursor-pointer"
               onClick={() => router.push("/product")}
             >
               <Globe />
@@ -109,21 +109,21 @@ export default function Home() {
       </div>
 
       {/* explore */}
-      <section className="relative bg-[#f7faf8] px-4 pb-20 pt-24 font-satoshi md:px-6 lg:px-8" id="explore">
+      <section className="relative bg-[#f6f9ff] px-4 pb-20 pt-24 font-satoshi md:px-6 lg:px-8" id="explore">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold tracking-wide text-emerald-700">
+              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold tracking-wide text-blue-700">
                 <Sparkles size={14} /> CURATED FOR YOU
               </span>
               <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                Explore our <span className="text-emerald-600">collection</span>
+                Explore our <span className="text-blue-600">collection</span>
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
                 Find unique physical and digital creations, handpicked for your next project or everyday inspiration.
               </p>
             </div>
-            <Link href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 sm:self-auto">
+            <Link href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50 sm:self-auto">
               Browse all products <ArrowRight size={17} />
             </Link>
           </div>
@@ -131,7 +131,7 @@ export default function Home() {
           <div className="mb-6 rounded-2xl border border-slate-100 bg-white p-3.5 shadow-[0_8px_35px_rgba(15,23,42,0.04)] sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
               <label htmlFor="home-product-search" className="relative block min-w-0 flex-1">
-                <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" />
+                <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-600" />
                 <input
                   id="home-product-search"
                   type="search"
@@ -139,7 +139,7 @@ export default function Home() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search products, categories, or tags..."
                   autoComplete="off"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-[#f9fbfa] pl-12 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-[#f8faff] pl-12 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                 />
                 {searchQuery && (
                   <button type="button" onClick={() => setSearchQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800">
@@ -160,8 +160,8 @@ export default function Home() {
                     onClick={() => setSelectedType(option.value)}
                     className={"rounded-xl border px-4 py-2.5 text-sm font-semibold transition " + (
                       selectedType === option.value
-                        ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
+                        ? "storefront-btn-primary border-blue-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700"
                     )}
                   >
                     {option.label}
@@ -175,7 +175,7 @@ export default function Home() {
             <div className="mb-5 flex items-center justify-between gap-3">
               <p className="text-sm text-slate-500"><span className="font-bold text-slate-800">{filteredProducts.length}</span> products found</p>
               {(searchQuery || selectedType !== "all") && (
-                <button type="button" className="text-xs font-bold text-emerald-700 hover:underline" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>
+                <button type="button" className="text-xs font-bold text-blue-700 hover:underline" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>
                   Reset filters
                 </button>
               )}
@@ -189,14 +189,14 @@ export default function Home() {
               <SearchX size={34} className="text-rose-400" />
               <h3 className="text-xl font-bold text-slate-800">We could not load the products</h3>
               <p className="text-sm text-slate-500">Check your connection and try again.</p>
-              <button type="button" onClick={getProducts} className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700">Try again</button>
+              <button type="button" onClick={getProducts} className="storefront-btn-primary rounded-xl px-5 py-2.5 text-sm font-bold text-white">Try again</button>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-emerald-200 bg-white px-6 py-16 text-center">
-              <SearchX size={36} className="text-emerald-500" />
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-blue-200 bg-white px-6 py-16 text-center">
+              <SearchX size={36} className="text-blue-500" />
               <h3 className="text-lg font-bold text-slate-800">No products found</h3>
               <p className="text-sm text-slate-500">Try another keyword or explore all product types.</p>
-              <button type="button" className="mt-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>View all products</button>
+              <button type="button" className="storefront-btn-primary mt-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>View all products</button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 lg:gap-5">
