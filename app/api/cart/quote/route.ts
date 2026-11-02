@@ -31,10 +31,10 @@ export async function POST(req: Request) {
       };
     });
     const valid = lines.every(line => line.available);
-    const subtotal = lines.reduce((sum, line) => sum + (line.available ? Number(line.lineTotal) : 0), 0);
+    const subtotal = lines.reduce((sum, line) => sum + (line.available && "lineTotal" in line ? Number(line.lineTotal) : 0), 0);
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
-      shippingRequired: lines.some(line => line.available && line.type === "PHYSICAL"),
+      shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
       note: "Quote only. Shipping and payments are not yet implemented. Prices and stock will be revalidated at checkout.",
     }, { headers: { "Cache-Control": "no-store" } });
