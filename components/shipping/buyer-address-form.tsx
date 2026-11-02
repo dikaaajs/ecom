@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, LocateFixed, MapPin, Save, Trash2 } from "lucide-react";
+import { RegionSelector } from "@/components/shipping/region-selector";
+import type { RegionSelection } from "@/lib/shipping/regions";
 import {
   BUYER_ADDRESS_DRAFT_KEY, buyerAddressSchema,
   emptyBuyerAddress, type BuyerAddress,
@@ -14,17 +16,13 @@ const LocationMap = dynamic(() => import("@/components/shipping/origin-map"), {
 });
 
 type Field = keyof Pick<BuyerAddress,
-  "recipient" | "phone" | "email" | "province" | "city" |
-  "district" | "village" | "postalCode" | "addressLine" | "notes"
+  "recipient" | "phone" | "email" | "village" | "postalCode" | "addressLine" | "notes"
 >;
 
 const fields: Array<{ name: Field; label: string; hint: string; required?: boolean }> = [
   { name: "recipient", label: "Nama lengkap penerima", hint: "Nama penerima paket", required: true },
   { name: "phone", label: "Nomor WhatsApp / HP", hint: "08xxxxxxxxxx", required: true },
   { name: "email", label: "Email pembeli", hint: "email@contoh.com", required: true },
-  { name: "province", label: "Provinsi", hint: "Contoh: Jawa Barat", required: true },
-  { name: "city", label: "Kota / Kabupaten", hint: "Contoh: Kota Bandung", required: true },
-  { name: "district", label: "Kecamatan", hint: "Contoh: Coblong", required: true },
   { name: "village", label: "Kelurahan / Desa", hint: "Contoh: Dago", required: true },
   { name: "postalCode", label: "Kode pos", hint: "5 digit", required: true },
   { name: "addressLine", label: "Alamat lengkap (jalan, nomor, RT/RW)", hint: "Nama jalan, nomor rumah, RT/RW, patokan...", required: true },
@@ -63,6 +61,12 @@ export function BuyerAddressForm() {
   const update = (name: Field, value: string) => {
     setDraft(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: [] }));
+    setSaved(false);
+    setMessage("");
+  };
+  const setRegion = (region: RegionSelection) => {
+    setDraft(prev => ({ ...prev, ...region }));
+    setErrors(prev => ({ ...prev, province: [], provinceId: [], city: [], cityId: [], district: [], districtId: [] }));
     setSaved(false);
     setMessage("");
   };
@@ -143,6 +147,9 @@ export function BuyerAddressForm() {
         {saved && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"><CheckCircle2 size={14} /> Draft tersimpan</span>}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
+        <RegionSelector value={{ province: draft.province, provinceId: draft.provinceId,
+          city: draft.city, cityId: draft.cityId, district: draft.district, districtId: draft.districtId }}
+          onChange={setRegion} />
         {fields.map(field => {
           const isLong = field.name === "addressLine" || field.name === "notes";
           return (
