@@ -13,6 +13,7 @@ export async function getSavedShippingOrigin(): Promise<SavedShippingOrigin | nu
   });
   if (!setting) return null;
   const parsed = savedShippingOriginSchema.safeParse(JSON.parse(setting.value));
-  if (!parsed.success) throw new Error("Stored shipping origin is invalid");
+  // A legacy address without provider region IDs is not courier-ready.
+  if (!parsed.success) return null;
   return parsed.data;
 }
