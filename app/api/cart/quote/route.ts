@@ -17,7 +17,9 @@ export async function POST(req: Request) {
     }
     const products = await prisma.product.findMany({
       where: { id: { in: items.map(i => i.productId) }, isPublished: true },
-      select: { id: true, title: true, imageUrl: true, price: true, stock: true, type: true, weight: true },
+      select: { id: true, title: true, imageUrl: true, price: true, stock: true, type: true, weight: true,
+        digitalAsset: { select: { id: true } },
+      },
     });
     const byId = new Map(products.map(p => [p.id, p]));
     const lines = items.map(item => {
@@ -39,15 +41,21 @@ export async function POST(req: Request) {
       return product && product.stock >= item.quantity ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
     }));
     const shippingOriginConfigured = delivery.shippingRequired ? (await getSavedShippingOrigin()) !== null : true;
+    const missingDigitalFiles = items.filter(item => {
+      const product = byId.get(item.productId);
+      return product?.type === "DIGITAL" && product.stock >= item.quantity && !product.digitalAsset;
+    }).length;
     const checkoutBlockers = [
       ...(!valid ? ["INVALID_CART"] : []),
       ...(delivery.shippingRequired && !shippingOriginConfigured ? ["SHIPPING_ORIGIN_MISSING"] : []),
       ...(delivery.shippingRequired ? ["SHIPPING_RATE_UNAVAILABLE"] : []),
+      ...(missingDigitalFiles > 0 ? ["DIGITAL_ASSET_MISSING"] : []),
       "CHECKOUT_NOT_IMPLEMENTED",
     ];
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
       shippingOriginConfigured, checkoutReady: false, checkoutBlockers,
+      digitalAssetReady: missingDigitalFiles === 0,
       delivery,
       shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
