@@ -15,7 +15,7 @@ export function ProductSkeletonGrid({ count = 10 }: ProductSkeletonGridProps) {
           >
             <div className="aspect-square bg-slate-100" />
             <div className="space-y-3 p-3.5">
-              <div className="h-3 w-1/3 rounded-full bg-emerald-50" />
+              <div className="h-3 w-1/3 rounded-full bg-blue-50" />
               <div className="h-4 w-full rounded-md bg-slate-100" />
               <div className="h-4 w-3/4 rounded-md bg-slate-100" />
               <div className="h-5 w-2/3 rounded-md bg-slate-200" />
