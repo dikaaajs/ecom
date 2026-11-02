@@ -2,7 +2,8 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { applyVerifiedPayment, CheckoutError } from "@/lib/payment/checkout";
 import {
-  notificationSchema, verifyMidtransSignature, MidtransError,
+  notificationSchema, verifyMidtransSignature, classifyNotification,
+  fetchMidtransStatus, MidtransError,
 } from "@/lib/payment/midtrans";
 
 export const runtime = "nodejs";
@@ -30,6 +31,16 @@ export async function POST(request: Request) {
   try {
     if (!verifyMidtransSignature(parsed.data)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+    // Negative notifications may arrive out of order. Confirm the CURRENT
+    // provider status before releasing reserved inventory.
+    if (classifyNotification(parsed.data) === "CANCELLED") {
+      const current = await fetchMidtransStatus(parsed.data.order_id);
+      if (!current || classifyNotification(current) !== "CANCELLED") {
+        return NextResponse.json({ ok: true, ignored: "out_of_order_notification" });
+      }
+      const result = await applyVerifiedPayment(current);
+      return NextResponse.json({ ok: true, result });
     }
     const result = await applyVerifiedPayment(parsed.data);
     return NextResponse.json({ ok: true, result });
