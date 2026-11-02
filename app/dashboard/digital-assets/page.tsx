@@ -136,11 +136,12 @@ export default function DigitalAssetsPage() {
                   <div className="flex w-full max-w-lg flex-col gap-2 sm:flex-row sm:items-end">
                     <label className="min-w-0 flex-1 text-xs font-semibold text-slate-700">
                       {product.digitalAsset ? "Ganti file produk" : "Pilih file produk"}
-                      <input key={product.id + (files[product.id]?.name || "")}
+                      <input
                         type="file" accept=".pdf,.zip,.png,.jpg,.jpeg,.webp"
                         disabled={!!uploadingId}
                         onChange={e => pickFile(product.id, e)}
                         className="mt-1 block w-full cursor-pointer rounded-lg border p-2 text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:font-semibold file:text-blue-700 disabled:opacity-50"/>
+                      {!!files[product.id] && <span className="mt-1 block truncate text-xs text-blue-700">Dipilih: {files[product.id]?.name}</span>}
                     </label>
                     <button type="button" disabled={!files[product.id] || !!uploadingId} onClick={() => void upload(product.id)}
                       className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300">
