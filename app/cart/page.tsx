@@ -87,7 +87,7 @@ export default function CartPage() {
             </div>
             <aside className="h-fit rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold">Order summary</h2>
-              <div className="mt-5 flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><strong>{quote ? rupiah(quote.subtotal) : "—"}</strong></div>
+              <div className="mt-5 flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><strong>{quote && !quoteStale ? rupiah(quote.subtotal) : "—"}</strong></div>
               <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Physical items</span><strong>{quote && !quoteStale ? quote.delivery.physicalCount : "—"}</strong></div>
               <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Digital items</span><strong>{quote && !quoteStale ? quote.delivery.digitalCount : "—"}</strong></div>
               <div className="mt-3 flex justify-between gap-4 text-sm"><span className="text-slate-500">Total shipping weight</span><strong>{quote && !quoteStale ? (quote.delivery.shippingRequired ? new Intl.NumberFormat("id-ID").format(quote.delivery.totalWeightGram) + " gram" : "Not required") : "—"}</strong></div>
@@ -98,10 +98,14 @@ export default function CartPage() {
               {quote && !quoteStale && quote.delivery.shippingRequired && !quote.shippingOriginConfigured && (
                 <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Shipping setup is incomplete.</strong> The store has not configured its shipping origin. Physical checkout is unavailable; please contact the store.</div>
               )}
-              <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">
-                Checkout coming soon
-              </button>
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">Payments and order placement are not enabled yet. This summary uses server-verified catalog prices.</p>
+              {quote && !quoteStale && quote.valid ? (
+                <Link href="/checkout" className="storefront-btn-primary mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white">
+                  {quote.delivery.shippingRequired ? "Isi alamat pembeli" : "Tinjau checkout digital"}
+                </Link>
+              ) : (
+                <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">Menunggu verifikasi keranjang</button>
+              )}
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">Tahap berikutnya hanya pratinjau alamat/ringkasan. Checkout dan pembayaran belum diaktifkan; belum ada order yang akan dibuat.</p>
             </aside>
           </div>
         )}
