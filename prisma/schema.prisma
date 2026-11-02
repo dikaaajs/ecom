@@ -61,6 +61,7 @@ model Product {
 
   tags        Tag[]
   images      ProductImage[]
+  orderItems  OrderItem[]
 
   isPublished Boolean  @default(true)
 
@@ -120,4 +121,91 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 
   @@map("site_settings")
+}
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  addresses CustomerAddress[]
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@map("customers")
+}
+
+model CustomerAddress {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label       String?
+  recipient   String
+  phone       String
+  addressLine String
+  province    String
+  city        String
+  district    String?
+  postalCode  String
+  isDefault   Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNumber  String      @unique
+  customerId   String
+  customer     Customer    @relation(fields: [customerId], references: [id])
+  status       OrderStatus @default(DRAFT)
+  currency     String      @default("IDR")
+  subtotal     Decimal     @db.Decimal(12,2)
+  shippingCost Decimal?    @db.Decimal(12,2)
+  total        Decimal?    @db.Decimal(12,2)
+  notes        String?
+  recipient    String?
+  phone        String?
+  addressLine  String?
+  province     String?
+  city         String?
+  district     String?
+  postalCode   String?
+  items        OrderItem[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String      @id @default(cuid())
+  orderId      String
+  order        Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productTitle String
+  productType  ProductType
+  quantity     Int
+  unitPrice    Decimal     @db.Decimal(12,2)
+  lineTotal    Decimal     @db.Decimal(12,2)
+  createdAt    DateTime    @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
 }
