@@ -86,6 +86,8 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
     setDraft(prev => ({ ...prev, ...point }));
     setErrors(prev => ({ ...prev, latitude: [] }));
     setSaved(false);
+    onAddressSaved(null);
+    onRateChange(null);
     setMessage("");
   };
 
