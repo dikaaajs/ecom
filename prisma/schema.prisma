@@ -62,6 +62,7 @@ model Product {
   tags        Tag[]
   images      ProductImage[]
   orderItems  OrderItem[]
+  digitalAsset DigitalAsset?
 
   isPublished Boolean  @default(true)
 
@@ -184,6 +185,7 @@ model Order {
   district     String?
   postalCode   String?
   items        OrderItem[]
+  shipment     Shipment?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -208,4 +210,44 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@map("order_items")
+}
+
+enum ShipmentStatus {
+  PENDING
+  READY
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+model Shipment {
+  id              String         @id @default(cuid())
+  orderId         String         @unique
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status          ShipmentStatus @default(PENDING)
+  courier         String?
+  service         String?
+  trackingNumber  String?
+  totalWeightGram Int
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@map("shipments")
+}
+
+model DigitalAsset {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bucket      String
+  objectPath  String
+  fileName    String
+  contentType String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("digital_assets")
 }

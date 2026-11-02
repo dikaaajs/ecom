@@ -10,6 +10,7 @@ import {
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
+  FileLock2,
   FolderIcon,
   HelpCircleIcon,
   LayoutDashboardIcon,
@@ -59,6 +60,11 @@ const data = {
       icon: ClipboardListIcon,
     },
     {
+      title: "File Digital",
+      url: "/dashboard/digital-assets",
+      icon: FileLock2,
+    },
+    {
       title: "Analytics",
       url: "/dashboard/analytics",
       icon: BarChartIcon,
@@ -71,8 +77,8 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "#",
+      title: "Alamat Pengirim",
+      url: "/dashboard/settings/shipping",
       icon: SettingsIcon,
     },
     {

@@ -6,7 +6,10 @@ import { z } from 'zod'
 
 export async function GET() {
   try {
-    const settings = await prisma.siteSetting.findMany()
+    // Public storefront settings must never expose the warehouse/sender address.
+    const settings = await prisma.siteSetting.findMany({
+      where: { key: { notIn: ['shippingOrigin'] } },
+    })
 
     // Transform array of key-value pairs into an object
     const settingsObject = settings.reduce((acc, setting) => {
@@ -80,6 +83,10 @@ export async function PUT(req: Request) {
   
       const parsed = z.record(z.string().min(1).max(100), z.union([z.string().max(10000), z.number(), z.boolean(), z.record(z.string(), z.unknown())])).safeParse(body)
       if (!parsed.success) return NextResponse.json({ error: "Invalid settings", issues: parsed.error.flatten() }, { status: 400 })
+      // Shipping origin is edited exclusively via the validated admin-only endpoint.
+      if (Object.prototype.hasOwnProperty.call(parsed.data, 'shippingOrigin')) {
+        return NextResponse.json({ error: 'Use /api/admin/shipping-origin for this setting' }, { status: 400 })
+      }
       const updates = Object.entries(parsed.data) as [string, any][]
   
       // lakukan upsert untuk setiap key

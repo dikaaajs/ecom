@@ -164,3 +164,8 @@
   .storefront-btn-primary { transition: none; }
   .storefront-btn-primary:hover { transform: none; }
 }
+
+/* Admin shipping-origin map pin; keep map tiles under dashboard overlays. */
+.shipping-origin-map { z-index: 0; }
+.shipping-origin-marker { background: transparent; border: 0; }
+.shipping-origin-pin svg { display: block; width: 46px; height: 52px; filter: drop-shadow(0 3px 5px rgba(26,52,112,.25)); }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { Navbar } from "@/components/stack/navbar";
 import AuthSessionProvider from "@/components/providers/session-provider";

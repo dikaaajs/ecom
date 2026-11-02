@@ -11,8 +11,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { customer: { select: { id: true, name: true, email: true, phone: true } }, items: true },
+    include: { customer: { select: { id: true, name: true, email: true, phone: true } }, items: true, shipment: true },
   });
-  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404, headers: { "Cache-Control": "private, no-store" } });
   return NextResponse.json({ success: true, data: order }, { headers: { "Cache-Control": "private, no-store" } });
 }
