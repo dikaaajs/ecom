@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Package, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { tagColorStyles } from "@/data/tag-colors";
+import { Heart, ArrowUpRight, Package, Sparkles } from "lucide-react";
 import type { Tag } from "@prisma/client";
 
 interface ProductCardProps {
@@ -17,70 +15,52 @@ interface ProductCardProps {
 }
 
 export function ProductCard({
-  id,
-  title,
-  description,
-  tags,
-  price,
-  imageUrl,
-  type,
-  categoryName,
-  stock,
+  id, title, description, tags, price, imageUrl, type, categoryName, stock,
 }: ProductCardProps) {
-  const content = (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.035)] transition duration-200 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_14px_35px_rgba(15,23,42,0.10)]">
-      <div className="relative aspect-square overflow-hidden bg-slate-50">
-        <img
-          src={imageUrl || "/placeholder.svg"}
-          alt={title}
-          loading="lazy"
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-        />
-        {type && (
-          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-lg border border-white/70 bg-white/95 px-2.5 py-1.5 text-[10px] font-bold text-blue-700 shadow-sm sm:text-xs">
-            {type === "DIGITAL" ? <Sparkles size={13} /> : <Package size={13} />}
-            {type === "DIGITAL" ? "Digital" : "Physical"}
-          </span>
-        )}
+  const formattedPrice = new Intl.NumberFormat("id-ID", {
+    style: "currency", currency: "IDR", maximumFractionDigits: 0,
+  }).format(Number(price));
+
+  const card = (
+    <article className="group flex h-full flex-col overflow-hidden rounded-[26px] border border-[#e6eeff] bg-white shadow-[0_10px_32px_rgba(79,124,255,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(79,124,255,0.19)]">
+      <div className="storefront-card-hero relative flex aspect-[5/4] items-center justify-center overflow-hidden p-5">
+        <img src={imageUrl || "/placeholder.svg"} alt={title} loading="lazy"
+          className="max-h-full max-w-full object-contain drop-shadow-[0_12px_12px_rgba(34,57,113,0.16)] transition duration-500 group-hover:scale-105" />
+        <span aria-hidden="true" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-[#4f7cff] shadow-sm backdrop-blur-sm">
+          <Heart size={19} />
+        </span>
       </div>
-      <div className="flex flex-1 flex-col gap-2.5 p-3 sm:p-4">
-        <div>
-          {categoryName && <p className="mb-1.5 truncate text-[11px] font-semibold text-blue-700">{categoryName}</p>}
-          <h3 className="line-clamp-2 min-h-[2.75rem] text-sm font-semibold leading-snug text-slate-800 sm:text-[15px]">{title}</h3>
+      <div className="relative -mt-5 flex flex-1 flex-col rounded-t-[24px] bg-white p-4 sm:p-5">
+        <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-[#4f7cff]">
+          {type === "DIGITAL" ? <Sparkles size={14} /> : <Package size={14} />}
+          <span>{categoryName || (type === "DIGITAL" ? "Digital product" : "Physical product")}</span>
         </div>
-        <p className="line-clamp-2 text-xs leading-relaxed text-slate-500">{description || "Explore this product in our collection."}</p>
-        <div className="mt-auto">
-          <p className="text-base font-extrabold tracking-tight text-slate-900 sm:text-lg">
-            {new Intl.NumberFormat("id-ID", {
-              style: "currency",
-              currency: "IDR",
-              maximumFractionDigits: 0,
-            }).format(Number(price))}
-          </p>
-          {stock !== undefined && (
-            <p className="mt-1.5 text-[11px] font-medium text-slate-500">
-              {stock > 0 ? "Ready stock" : "Out of stock"}
-            </p>
-          )}
-        </div>
+        <h3 className="line-clamp-2 min-h-[2.75rem] text-lg font-extrabold leading-snug tracking-tight text-[#17172f] sm:text-xl">{title}</h3>
         {tags.length > 0 && (
-          <div className="flex gap-1.5 overflow-hidden pt-1">
-            {tags.slice(0, 2).map((tag) => (
-              <Badge key={tag.id} className={"max-w-[95px] truncate border-0 text-[10px] " + tagColorStyles[tag.color]}>{tag.name}</Badge>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {tags.slice(0, 2).map(tag => (
+              <span key={tag.id} className="max-w-[120px] truncate rounded-full bg-[#edf3ff] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#4f7cff]">{tag.name}</span>
             ))}
           </div>
         )}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs font-bold text-blue-700">
-          <span>View details</span>
-          <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <p className="mt-3 line-clamp-3 min-h-[3.6rem] text-xs leading-5 text-slate-500 sm:text-sm">
+          {description || "Discover something special from our collection."}
+        </p>
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">Price</p>
+            <p className="mt-1 text-base font-extrabold tracking-tight text-[#17172f] sm:text-lg">{formattedPrice}</p>
+            {stock !== undefined && <p className="mt-1 text-[10px] text-slate-400">{stock > 0 ? "Ready stock" : "Out of stock"}</p>}
+          </div>
+          <span className="storefront-btn-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-white sm:px-4 sm:text-sm">
+            View product <ArrowUpRight size={16} />
+          </span>
         </div>
       </div>
     </article>
   );
 
   return id ? (
-    <Link href={"/product/" + id} className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-      {content}
-    </Link>
-  ) : content;
+    <Link href={"/product/" + id} className="block h-full rounded-[26px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4f7cff]">{card}</Link>
+  ) : card;
 }
