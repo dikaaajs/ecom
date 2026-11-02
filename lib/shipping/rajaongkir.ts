@@ -33,16 +33,18 @@ export async function getRajaOngkirRates(args: {
       !/^[a-z]+(?::[a-z]+)*$/.test(args.couriers)) {
     throw new Error("Invalid shipping rate parameters");
   }
+  // District IDs from the step-by-step province/city/district selector.
   const body = new URLSearchParams({
     origin: String(args.originId),
     destination: String(args.destinationId),
     weight: String(args.weightGram),
     courier: args.couriers,
+    price: "lowest",
   });
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const response = await fetch("https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost", {
+    const response = await fetch("https://rajaongkir.komerce.id/api/v1/calculate/district/domestic-cost", {
       method: "POST",
       headers: { key: apiKey, "Content-Type": "application/x-www-form-urlencoded" },
       body,
