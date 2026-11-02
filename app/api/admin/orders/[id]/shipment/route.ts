@@ -29,7 +29,6 @@ class ShipmentActionError extends Error {
 const jsonError = (error: string, status: number) =>
   NextResponse.json({ error }, { status, headers: privateHeaders });
 
-const eligibleOrderStatuses = ["PAID", "PROCESSING"] as const;
 
 /**
  * Shipment mutations are intentionally admin-only. No endpoint marks an order
@@ -67,6 +66,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         select: {
           id: true,
           status: true,
+          recipient: true,
+          phone: true,
+          addressLine: true,
+          province: true,
+          city: true,
+          postalCode: true,
           items: {
             select: {
               productType: true,
@@ -85,14 +90,17 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       const action = parsed.data;
       if (action.action === "PREPARE") {
-        if (!eligibleOrderStatuses.includes(order.status as typeof eligibleOrderStatuses[number])) {
+        if (order.status !== "PAID" && order.status !== "PROCESSING") {
           throw new ShipmentActionError("Hanya pesanan berstatus PAID/PROCESSING yang dapat dipersiapkan", 409);
+        }
+        if (!order.addressLine?.trim() || !order.province?.trim() || !order.city?.trim() || !order.postalCode?.trim()) {
+          throw new ShipmentActionError("Alamat pengiriman pesanan belum lengkap", 422);
         }
         if (order.shipment && order.shipment.status !== "PENDING") {
           throw new ShipmentActionError("Pengiriman sudah dipersiapkan atau diproses", 409);
         }
         let totalWeightGram = order.shipment?.totalWeightGram || 0;
-        if (!order.shipment) {
+        if (!order.shipment || totalWeightGram < 1) {
           totalWeightGram = 0;
           for (const item of physicalItems) {
             const weight = item.product?.weight;
@@ -109,7 +117,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         const shipment = order.shipment
           ? await tx.shipment.update({
               where: { id: order.shipment.id },
-              data: { status: "READY", courier: action.courier, service: action.service },
+              data: { status: "READY", courier: action.courier, service: action.service, totalWeightGram },
             })
           : await tx.shipment.create({
               data: {
