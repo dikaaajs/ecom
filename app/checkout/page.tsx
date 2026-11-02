@@ -19,6 +19,7 @@ type Quote = {
   shippingOriginConfigured: boolean;
   checkoutReady: boolean;
   checkoutBlockers: string[];
+  digitalAssetReady: boolean;
 };
 
 const formatPrice = (price: number | string) => new Intl.NumberFormat("id-ID", {
@@ -98,6 +99,12 @@ export default function CheckoutPage() {
         ) : (
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div className="space-y-5">
+              {!quote.digitalAssetReady && (
+                <div role="alert" className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  <AlertTriangle className="mt-0.5 shrink-0" size={20}/>
+                  <p><strong>File produk digital belum disiapkan.</strong> Penjual perlu mengunggah file private sebelum transaksi digital dapat diaktifkan.</p>
+                </div>
+              )}
               {quote.delivery.shippingRequired ? (
                 <>
                   {!quote.shippingOriginConfigured && (
