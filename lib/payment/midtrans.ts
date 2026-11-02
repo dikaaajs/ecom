@@ -70,7 +70,11 @@ export async function createSnapPayment(params: {
           phone: params.buyer.phone || undefined,
         },
         item_details: itemDetails,
-        expiry: { unit: "minutes", duration: 60 },
+        // Limit both the payment method and the Snap page lifetime.
+        expiry: {
+          start_time: new Date(Date.now() + 7 * 3_600_000).toISOString().slice(0, 19).replace("T", " ") + " +0700",
+          unit: "minutes", duration: 60,
+        },
       }),
       signal: controller.signal,
       cache: "no-store",
