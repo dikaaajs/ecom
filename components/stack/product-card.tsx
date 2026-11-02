@@ -1,68 +1,47 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { tagColorStyles } from "@/data/tag-colors";
-import { Tag } from "@prisma/client";
+import type { Tag } from "@prisma/client";
 
 interface ProductCardProps {
+  id?: string;
   title: string;
-  description: string;
+  description: string | null;
   tags: Tag[];
-  price: number;
-  imageUrl: string;
+  price: number | string;
+  imageUrl: string | null;
+  type?: "PHYSICAL" | "DIGITAL";
 }
 
-export function ProductCard({
-  title,
-  description,
-  tags,
-  price,
-  imageUrl,
-}: ProductCardProps) {
-  console.log(tags);
-  return (
-    <Card className="overflow-hidden transition-all hover:shadow-md pt-0 font-satoshi shadow-lg">
-      {/* image */}
+export function ProductCard({ id, title, description, tags, price, imageUrl, type }: ProductCardProps) {
+  const content = (
+    <Card className="overflow-hidden transition-all hover:shadow-md pt-0 font-satoshi shadow-lg h-full">
       <div className="aspect-square relative overflow-hidden">
         <img
           src={imageUrl || "/placeholder.svg"}
           alt={title}
-          className="w-full h-full object-cover transition-transform hover:scale-105 z-0"
+          className="w-full h-full object-cover transition-transform hover:scale-105"
         />
-        <div className="px-2 py-0.5 bottom-3 right-3 absolute z-20 rounded-md bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border border-gray-100 bg-white">
+        <div className="px-2 py-0.5 bottom-3 right-3 absolute z-20 rounded-md border border-gray-100 bg-white/90">
           <p className="font-bold text-[.8rem]">
-            {new Intl.NumberFormat("id-ID", {
-              style: "currency",
-              currency: "IDR",
-              maximumFractionDigits: 0,
-            }).format(price)}
+            {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(price))}
           </p>
         </div>
       </div>
-      <CardHeader className="">
-        <div className="flex justify-between items-start">
-          <h3 className="font-extrabold text-md ">{title}</h3>
-        </div>
+      <CardHeader>
+        <h3 className="font-extrabold text-md">{title}</h3>
+        {type && <span className="text-xs text-muted-foreground">{type === "DIGITAL" ? "Digital product" : "Physical product"}</span>}
         <div className="flex flex-wrap gap-1 mt-2">
-          {tags.map((tag: Tag) => (
-            <Badge
-              key={`tags-public-${tag.id}`}
-              className={tagColorStyles[tag.color]}
-            >
-              {tag.name}
-            </Badge>
+          {tags.map((tag) => (
+            <Badge key={tag.id} className={tagColorStyles[tag.color]}>{tag.name}</Badge>
           ))}
         </div>
       </CardHeader>
-      <CardContent className=" pt-0">
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {description}
-        </p>
+      <CardContent className="pt-0">
+        <p className="text-sm text-muted-foreground line-clamp-2">{description || "No description available."}</p>
       </CardContent>
     </Card>
   );
+  return id ? <Link href={`/product/${id}`} className="block h-full">{content}</Link> : content;
 }
