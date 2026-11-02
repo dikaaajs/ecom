@@ -51,7 +51,7 @@ export function Footer({ compact = false }: { compact?: boolean }) {
                 placeholder="Your email"
                 className="bg-gray-800 border-gray-700 text-white"
               />
-              <Button className="bg-blue-700 hover:bg-blue-600">
+              <Button className="storefront-btn-primary">
                 Subscribe
               </Button>
             </div>
