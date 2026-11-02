@@ -10,7 +10,7 @@ type QuoteLine = {
   title?: string; imageUrl?: string | null; type?: "PHYSICAL" | "DIGITAL";
   unitPrice?: string; lineTotal?: string;
 };
-type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null; delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean; shippingStatus: string } };
+type Quote = { valid: boolean; lines: QuoteLine[]; subtotal: string; shippingRequired: boolean; shipping: null; total: null; delivery: { physicalCount: number; digitalCount: number; totalWeightGram: number; shippingRequired: boolean; shippingStatus: string }; shippingOriginConfigured: boolean; checkoutReady: boolean; checkoutBlockers: string[] };
 
 const rupiah = (value: number | string) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value));
 
@@ -95,6 +95,9 @@ export default function CartPage() {
               <div className="mt-4 border-t pt-4 text-sm text-slate-500">
                 {!quote || quoteStale ? "Verifying delivery requirements..." : !quote.valid ? "Some items are unavailable. Please update the cart before checkout." : quote.delivery.shippingRequired ? "Physical items require a delivery address and courier rate at checkout." : "Digital-only items do not require shipping."}
               </div>
+              {quote && !quoteStale && quote.delivery.shippingRequired && !quote.shippingOriginConfigured && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900"><strong>Shipping setup is incomplete.</strong> The store has not configured its shipping origin. Physical checkout is unavailable; please contact the store.</div>
+              )}
               <button type="button" disabled className="mt-6 w-full cursor-not-allowed rounded-xl bg-slate-200 px-5 py-3 font-bold text-slate-500">
                 Checkout coming soon
               </button>
