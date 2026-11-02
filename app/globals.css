@@ -134,3 +134,51 @@
 .font-satoshi {
   font-family: "Satoshi";
 }
+
+/* Storefront design tokens — keep dashboard semantic button variants untouched. */
+:root {
+  --storefront-accent: #2563eb;
+  --storefront-accent-light: #38bdf8;
+  --storefront-accent-dark: #1e3a8a;
+}
+
+.storefront-btn-primary {
+  background: linear-gradient(115deg, #38bdf8 0%, #2563eb 51%, #1e3a8a 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.2);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.storefront-btn-primary:hover {
+  background: linear-gradient(115deg, #0ea5e9 0%, #1d4ed8 51%, #1e40af 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+  transform: translateY(-1px);
+}
+
+.storefront-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.18);
+}
+
+.storefront-btn-primary:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+.storefront-btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-btn-primary {
+    transition: none;
+  }
+  .storefront-btn-primary:hover {
+    transform: none;
+  }
+}
