@@ -3,10 +3,10 @@
 import { Footer } from "@/components/stack/footer";
 import { ProductCard } from "@/components/stack/product-card";
 import { Button } from "@/components/ui/button";
-import { Globe, Map } from "lucide-react";
+import { ArrowRight, Globe, Map, Search, SearchX, Sparkles, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { products } from "./dummy";
 
 import {
   Accordion,
@@ -14,20 +14,27 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ProductSkeletonGrid } from "@/components/stack/product-skeleton";
+import type { StorefrontProduct } from "@/types/storefront";
 import type { ProductsType } from "@/types/products";
 
 export default function Home() {
   const router = useRouter();
 
-  const [products, setProducts] = useState<ProductsType>({
+  const [products, setProducts] = useState<ProductsType<StorefrontProduct>>({
     success: false,
     data: [],
     count: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
 
   const getProducts = async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/products", {
         method: "GET",
@@ -38,6 +45,7 @@ export default function Home() {
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -46,6 +54,14 @@ export default function Home() {
   useEffect(() => {
     getProducts();
   }, []);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return products.data.filter((product) => {
+      const searchable = [product.title, product.description || "", product.category?.name || "", ...product.tags.map((tag) => tag.name)].join(" ").toLowerCase();
+      return (!query || searchable.includes(query)) && (selectedType === "all" || product.type === selectedType);
+    });
+  }, [products.data, searchQuery, selectedType]);
 
   return (
     <div>
@@ -74,7 +90,7 @@ export default function Home() {
           </p>
           <div className="flex gap-5 justify-center">
             <Button
-              className="bg-blue-700 hover:bg-blue-600 cursor-pointer"
+              className="storefront-btn-primary cursor-pointer"
               onClick={() => router.push("/product")}
             >
               <Globe />
@@ -85,7 +101,7 @@ export default function Home() {
 
         {/* card glass */}
         <div className="w-[200px] text-white absolute left-3 bottom-3 p-3 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-30 border border-neutral-100/50">
-          <h5 className="font-bold text-[1.5rem]">55+ design</h5>
+          <h5 className="font-bold text-[1.5rem]">{loading ? "Explore" : products.count + " designs"}</h5>
           <p className="text-[.8rem]">
             Choose from Over 55 Unique Designs for Your Need
           </p>
@@ -93,37 +109,115 @@ export default function Home() {
       </div>
 
       {/* explore */}
-      <div className="pt-[200px] px-4 md:px-6 lg:px-8 bg-gray-50" id="explore">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Explore Our Collection</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Browse our handcrafted pixel art creations. Each piece is designed
-              with attention to detail and available exclusively on our
-              platform.
-            </p>
+      <section className="relative bg-[#f6f9ff] px-4 pb-20 pt-24 font-satoshi md:px-6 lg:px-8" id="explore">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+            <div>
+              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold tracking-wide text-blue-700">
+                <Sparkles size={14} /> CURATED FOR YOU
+              </span>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+                Explore our <span className="text-blue-600">collection</span>
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+                Find unique physical and digital creations, handpicked for your next project or everyday inspiration.
+              </p>
+            </div>
+            <Link href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50 sm:self-auto">
+              Browse all products <ArrowRight size={17} />
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products ? (
-              <>
-                {products.data.map((product: any) => (
-                  <ProductCard
-                    key={product.id}
-                    title={product.title}
-                    description={product.description}
-                    tags={product.tags}
-                    price={product.price}
-                    imageUrl={product.imageUrl}
-                  />
+          <div className="mb-6 rounded-2xl border border-slate-100 bg-white p-3.5 shadow-[0_8px_35px_rgba(15,23,42,0.04)] sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+              <label htmlFor="home-product-search" className="relative block min-w-0 flex-1">
+                <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-600" />
+                <input
+                  id="home-product-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search products, categories, or tags..."
+                  autoComplete="off"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-[#f8faff] pl-12 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                />
+                {searchQuery && (
+                  <button type="button" onClick={() => setSearchQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800">
+                    <X size={17} />
+                  </button>
+                )}
+              </label>
+              <div role="group" aria-label="Filter product type" className="flex flex-wrap items-center gap-2">
+                {[
+                  { value: "all", label: "All products" },
+                  { value: "PHYSICAL", label: "Physical" },
+                  { value: "DIGITAL", label: "Digital" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={selectedType === option.value}
+                    onClick={() => setSelectedType(option.value)}
+                    className={"rounded-xl border px-4 py-2.5 text-sm font-semibold transition " + (
+                      selectedType === option.value
+                        ? "storefront-btn-primary border-blue-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700"
+                    )}
+                  >
+                    {option.label}
+                  </button>
                 ))}
-              </>
-            ) : (
-              <div>loading</div>
-            )}
+              </div>
+            </div>
           </div>
+
+          {!loading && !loadError && (
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <p className="text-sm text-slate-500"><span className="font-bold text-slate-800">{filteredProducts.length}</span> products found</p>
+              {(searchQuery || selectedType !== "all") && (
+                <button type="button" className="text-xs font-bold text-blue-700 hover:underline" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>
+                  Reset filters
+                </button>
+              )}
+            </div>
+          )}
+
+          {loading ? (
+            <ProductSkeletonGrid count={10} />
+          ) : loadError ? (
+            <div role="alert" className="flex flex-col items-center gap-4 rounded-2xl border border-rose-100 bg-white px-6 py-16 text-center">
+              <SearchX size={34} className="text-rose-400" />
+              <h3 className="text-xl font-bold text-slate-800">We could not load the products</h3>
+              <p className="text-sm text-slate-500">Check your connection and try again.</p>
+              <button type="button" onClick={getProducts} className="storefront-btn-primary rounded-xl px-5 py-2.5 text-sm font-bold text-white">Try again</button>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-blue-200 bg-white px-6 py-16 text-center">
+              <SearchX size={36} className="text-blue-500" />
+              <h3 className="text-lg font-bold text-slate-800">No products found</h3>
+              <p className="text-sm text-slate-500">Try another keyword or explore all product types.</p>
+              <button type="button" className="storefront-btn-primary mt-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>View all products</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  type={product.type}
+                  title={product.title}
+                  description={product.description}
+                  tags={product.tags}
+                  price={product.price}
+                  imageUrl={product.imageUrl}
+                  stock={product.stock}
+                  categoryName={product.category?.name}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
       {/* find us */}
       <div className="pt-[200px] px-5 md:px-6 lg:px-8 bg-gray-50 flex justify-center gap-10 flex-col md:flex-row h-fit">

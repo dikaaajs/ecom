@@ -134,3 +134,33 @@
 .font-satoshi {
   font-family: "Satoshi";
 }
+
+/* Storefront palette: refreshed bright blues without altering dashboard controls. */
+:root {
+  --storefront-accent-light: #6fd3ff;
+  --storefront-accent: #4f7cff;
+  --storefront-accent-dark: #355cff;
+}
+.storefront-card-hero {
+  background: linear-gradient(130deg, #8edbff 0%, #a6c7ff 52%, #c1baff 100%);
+}
+.storefront-btn-primary {
+  background: linear-gradient(115deg, #6fd3ff 0%, #4f7cff 52%, #355cff 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 22px rgba(79,124,255,.22);
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+.storefront-btn-primary:hover {
+  background: linear-gradient(115deg, #55c9ff 0%, #4773f5 52%, #3055ee 100%);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(79,124,255,.28);
+  transform: translateY(-1px);
+}
+.storefront-btn-primary:active { transform: translateY(0); }
+.storefront-btn-primary:focus-visible { outline: 3px solid #a8d8ff; outline-offset: 3px; }
+.storefront-btn-primary:disabled { cursor: not-allowed; opacity: .55; transform: none; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .storefront-btn-primary { transition: none; }
+  .storefront-btn-primary:hover { transform: none; }
+}

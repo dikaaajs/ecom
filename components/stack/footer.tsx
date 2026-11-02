@@ -3,9 +3,9 @@ import { Input } from "@/components/ui/input";
 import { Facebook, Instagram, Mail, Twitter, Youtube } from "lucide-react";
 import Link from "next/link";
 
-export function Footer() {
+export function Footer({ compact = false }: { compact?: boolean }) {
   return (
-    <footer className="bg-neutral-950 text-white relative font-satoshi mt-[200px]">
+    <footer className={"bg-neutral-950 text-white relative font-satoshi " + (compact ? "mt-0" : "mt-[200px]")}>
       <div className="container mx-auto px-4 py-12 flex gap-[50px] flex-col">
         <div className="flex flex-col md:flex-row justify-between gap-[50px]">
           {/* About Section */}
@@ -51,7 +51,7 @@ export function Footer() {
                 placeholder="Your email"
                 className="bg-gray-800 border-gray-700 text-white"
               />
-              <Button className="bg-blue-700 hover:bg-blue-600">
+              <Button className="storefront-btn-primary">
                 Subscribe
               </Button>
             </div>
