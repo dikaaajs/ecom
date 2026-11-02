@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, ChevronRight, LocateFixed, MapPin, Save, Truck, AlertCircle } from "lucide-react";
 import type { ShippingOriginInput, SavedShippingOrigin } from "@/lib/shipping/origin";
-import { shippingOriginSchema } from "@/lib/shipping/origin";
+import { shippingOriginWithRegionsSchema } from "@/lib/shipping/origin";
+import { RegionSelector } from "@/components/shipping/region-selector";
+import type { RegionSelection } from "@/lib/shipping/regions";
 
 const OriginMap = dynamic(() => import("@/components/shipping/origin-map"), {
   ssr: false,
@@ -13,19 +15,17 @@ const OriginMap = dynamic(() => import("@/components/shipping/origin-map"), {
 });
 
 type Fields = Omit<ShippingOriginInput, "latitude" | "longitude">;
+type TextField = Exclude<keyof Fields, "province" | "provinceId" | "city" | "cityId" | "district" | "districtId">;
 type Coords = { latitude: number; longitude: number };
 const initialFields: Fields = {
   storeName: "", senderName: "", phone: "", addressLine: "", village: "",
-  district: "", city: "", province: "", postalCode: "", notes: "",
+  district: "", districtId: 0, city: "", cityId: 0, province: "", provinceId: 0, postalCode: "", notes: "",
 };
 
-const fields: Array<{ name: keyof Fields; label: string; placeholder: string; required?: boolean; span?: boolean }> = [
+const fields: Array<{ name: TextField; label: string; placeholder: string; required?: boolean; span?: boolean }> = [
   { name: "storeName", label: "Nama toko / gudang", placeholder: "Contoh: Pixel Perfection Bandung", required: true },
   { name: "senderName", label: "Nama pengirim", placeholder: "Nama penanggung jawab paket", required: true },
   { name: "phone", label: "Nomor HP pengirim", placeholder: "08xxxxxxxxxx", required: true },
-  { name: "province", label: "Provinsi", placeholder: "Jawa Barat", required: true },
-  { name: "city", label: "Kota / kabupaten", placeholder: "Kota Bandung", required: true },
-  { name: "district", label: "Kecamatan", placeholder: "Coblong", required: true },
   { name: "village", label: "Kelurahan / desa", placeholder: "Dago" },
   { name: "postalCode", label: "Kode pos", placeholder: "40135", required: true },
 ];
@@ -49,12 +49,13 @@ export default function ShippingOriginSettingsPage() {
     try {
       const res = await fetch("/api/admin/shipping-origin", { cache: "no-store" });
       if (!res.ok) throw new Error("Tidak dapat mengambil data alamat pengirim");
-      const response: { data: SavedShippingOrigin | null } = await res.json();
+      const response: { data: (SavedShippingOrigin & { requiresRegionSelection?: boolean }) | null } = await res.json();
       if (response.data) {
-        const { latitude, longitude, updatedAt, ...rest } = response.data;
+        const { latitude, longitude, updatedAt, requiresRegionSelection, ...rest } = response.data;
         setFieldsValue(rest);
         setCoords({ latitude, longitude });
-        setUpdatedAt(updatedAt);
+        setUpdatedAt(requiresRegionSelection ? null : updatedAt);
+        if (requiresRegionSelection) setNotice("Alamat lama ditemukan. Pilih ulang provinsi, kota, dan kecamatan agar terhubung ke RajaOngkir.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat data alamat");
@@ -65,10 +66,16 @@ export default function ShippingOriginSettingsPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const changeField = (name: keyof Fields, value: string) => {
+  const changeField = (name: TextField, value: string) => {
     setNotice("");
     setIssues(prev => ({ ...prev, [name]: [] }));
     setFieldsValue(prev => ({ ...prev, [name]: value }));
+  };
+
+  const changeRegion = (region: RegionSelection) => {
+    setFieldsValue(prev => ({ ...prev, ...region }));
+    setNotice("");
+    setIssues(prev => ({ ...prev, province: [], provinceId: [], city: [], cityId: [], district: [], districtId: [] }));
   };
 
   const changeCoords = (value: Coords) => {
@@ -115,7 +122,7 @@ export default function ShippingOriginSettingsPage() {
       return;
     }
     const payload = { ...fieldsValue, ...coords };
-    const validated = shippingOriginSchema.safeParse(payload);
+    const validated = shippingOriginWithRegionsSchema.safeParse(payload);
     if (!validated.success) {
       setIssues(validated.error.flatten().fieldErrors);
       setError("Beberapa kolom belum benar. Periksa isian yang ditandai.");
@@ -175,6 +182,12 @@ export default function ShippingOriginSettingsPage() {
               <div><h2 className="font-bold text-slate-900">1. Detail alamat toko</h2><p className="text-xs text-slate-500">Informasi ini digunakan untuk alamat asal paket.</p></div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
+              <RegionSelector
+                disabled={loading || saving}
+                value={{ province: fieldsValue.province, provinceId: fieldsValue.provinceId,
+                  city: fieldsValue.city, cityId: fieldsValue.cityId, district: fieldsValue.district, districtId: fieldsValue.districtId }}
+                onChange={changeRegion}
+              />
               {fields.map(field => (
                 <label key={field.name} className="block text-sm font-medium text-slate-700">
                   {field.label}{field.required && <span className="ml-1 text-rose-500">*</span>}
