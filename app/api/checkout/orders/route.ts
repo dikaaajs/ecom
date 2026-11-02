@@ -258,8 +258,9 @@ export async function POST(request: Request) {
       })),
       shippingCost,
     });
-    await prisma.paymentTransaction.update({
-      where: { orderId: order.id },
+    // Never regress a verified PAID/CANCELLED state if a webhook races with token creation.
+    await prisma.paymentTransaction.updateMany({
+      where: { orderId: order.id, state: "INITIALIZING" },
       data: { redirectUrl: snap.redirectUrl, state: "PENDING" },
     });
     return NextResponse.json({
