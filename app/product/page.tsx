@@ -161,7 +161,7 @@ export default function CatalogPage() {
           <ArrowRight size={14} /> More new finds are added to the collection as they become available.
         </div>
       </main>
-      <Footer />
+      <Footer compact />
     </div>
   );
 }
