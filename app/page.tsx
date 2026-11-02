@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/stack/product-card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Globe, Map, Search, SearchX, Sparkles, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import {
@@ -122,9 +123,9 @@ export default function Home() {
                 Find unique physical and digital creations, handpicked for your next project or everyday inspiration.
               </p>
             </div>
-            <a href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 sm:self-auto">
+            <Link href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50 sm:self-auto">
               Browse all products <ArrowRight size={17} />
-            </a>
+            </Link>
           </div>
 
           <div className="mb-6 rounded-2xl border border-slate-100 bg-white p-3.5 shadow-[0_8px_35px_rgba(15,23,42,0.04)] sm:p-5">
