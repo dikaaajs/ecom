@@ -7,7 +7,7 @@ export default function ProductDetailLoading() {
       <div className="grid gap-8 md:grid-cols-2 md:gap-12">
         <div className="aspect-square rounded-3xl bg-slate-100 motion-safe:animate-pulse" />
         <div className="space-y-5 pt-4 motion-safe:animate-pulse">
-          <div className="h-5 w-24 rounded-full bg-emerald-100" />
+          <div className="h-5 w-24 rounded-full bg-blue-100" />
           <div className="h-9 w-4/5 rounded-lg bg-slate-200" />
           <div className="h-5 w-1/3 rounded-lg bg-slate-100" />
           <div className="h-10 w-1/2 rounded-lg bg-slate-200" />
