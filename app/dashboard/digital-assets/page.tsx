@@ -54,6 +54,8 @@ export default function DigitalAssetsPage() {
       return;
     }
     setFiles(prev => ({ ...prev, [productId]: file }));
+    // Allow choosing the same file again after a failed upload.
+    event.target.value = "";
   };
 
   const upload = async (productId: string) => {
