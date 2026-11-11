@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 export default function ResetPasswordPage() {
-  const params = useSearchParams();
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -13,12 +11,12 @@ export default function ResetPasswordPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   useEffect(() => {
-    const value = params.get("token") || "";
+    const value = new URLSearchParams(window.location.search).get("token") || "";
     if (value) {
       setToken(value);
       window.history.replaceState(null, "", "/account/reset-password");
     }
-  }, [params]);
+  }, []);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice("");
