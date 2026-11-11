@@ -290,8 +290,39 @@ model CustomerAccount {
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   email        String   @unique
   passwordHash String
+  emailVerifiedAt DateTime?
+  sessionVersion Int @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("customer_accounts")
+}
+
+enum AccountTokenPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model AccountActionToken {
+  id String @id @default(cuid())
+  accountId String
+  purpose AccountTokenPurpose
+  tokenHash String @unique
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([accountId, purpose, createdAt])
+  @@index([expiresAt])
+  @@map("account_action_tokens")
+}
+
+model AuthRateLimit {
+  key String @id
+  count Int @default(0)
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("auth_rate_limits")
 }
