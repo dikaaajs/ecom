@@ -290,6 +290,7 @@ model CustomerAccount {
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   email        String   @unique
   passwordHash String
+  actionTokens AccountActionToken[]
   emailVerifiedAt DateTime?
   sessionVersion Int @default(0)
   createdAt    DateTime @default(now())
@@ -306,6 +307,7 @@ enum AccountTokenPurpose {
 model AccountActionToken {
   id String @id @default(cuid())
   accountId String
+  account CustomerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
   purpose AccountTokenPurpose
   tokenHash String @unique
   expiresAt DateTime
