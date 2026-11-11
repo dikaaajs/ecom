@@ -3,8 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useAdminLogin } from "@/lib/hooks/use-admin-login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,36 +14,11 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
+  const { login, isLoading, error } = useAdminLogin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const result = await signIn("credentials", {
-        username,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Invalid username or password");
-      } else {
-        // Check if session was created successfully
-        const session = await getSession();
-        if (session) {
-          router.push("/dashboard");
-        }
-      }
-    } catch (error) {
-      setError("An error occurred during login");
-    } finally {
-      setIsLoading(false);
-    }
+    void login(username, password);
   };
 
   return (
@@ -81,6 +55,8 @@ export default function SignInPage() {
             </Label>
             <Input
               id="username"
+              autoComplete="username"
+              disabled={isLoading}
               type="text"
               placeholder="admin"
               value={username}
@@ -97,6 +73,8 @@ export default function SignInPage() {
             <div className="relative">
               <Input
                 id="password"
+                autoComplete="current-password"
+                disabled={isLoading}
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
@@ -115,7 +93,7 @@ export default function SignInPage() {
           </div>
 
           {error && (
-            <div className="text-red-300 text-sm text-center bg-red-900/20 p-2 rounded">
+            <div role="alert" className="text-red-300 text-sm text-center bg-red-900/20 p-2 rounded">
               {error}
             </div>
           )}

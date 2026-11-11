@@ -14,16 +14,16 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, logout, isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, isAdmin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/auth/signin");
+    if (!isLoading && (!isAuthenticated || !isAdmin)) {
+      router.replace("/auth/signin");
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, isAdmin, router]);
 
-  if (isLoading) {
+  if (isLoading || !isAuthenticated || !isAdmin) {
     return <DashboardLoading />;
   }
 
