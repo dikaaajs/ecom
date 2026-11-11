@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { resetInput } from "@/lib/account/forms";
-import { tokenHash } from "@/lib/account/security";
+import { tokenHash, permitAttempt, requestIp } from "@/lib/account/security";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
@@ -16,6 +16,9 @@ export async function POST(request: Request) {
   catch { return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400, headers }); }
   const parsed = resetInput.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: "Token atau password tidak valid (minimal 12 karakter)." }, { status: 422, headers });
+  if (!(await permitAttempt("reset-token-ip", requestIp(request), 15, 15))) {
+    return NextResponse.json({ error: "Terlalu banyak percobaan reset. Coba nanti." }, { status: 429, headers });
+  }
   try {
     const token = await prisma.accountActionToken.findUnique({
       where: { tokenHash: tokenHash(parsed.data.token) },
