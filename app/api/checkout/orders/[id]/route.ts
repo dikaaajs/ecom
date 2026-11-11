@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       select: {
         id: true, orderNumber: true, status: true, subtotal: true, shippingCost: true,
         total: true, currency: true, createdAt: true,
-        items: { select: { productTitle: true, productType: true, quantity: true, unitPrice: true, lineTotal: true } },
+        items: { select: { productId: true, productTitle: true, productType: true, quantity: true, unitPrice: true, lineTotal: true } },
         shipment: { select: { status: true, courier: true, service: true, trackingNumber: true } },
         payment: { select: { state: true, redirectUrl: true, paidAt: true } },
       },
