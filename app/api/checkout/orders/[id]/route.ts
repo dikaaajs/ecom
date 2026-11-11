@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         id,
         OR: [
           ...(customerId ? [{ customerId }] : []),
-          ...(token ? [{ checkoutAccessHash: accessHash(token) }] : []),
+          ...(token ? [{ checkoutAccessHash: accessHash(token), customer: { account: { is: null } } }] : []),
         ],
       },
       select: {
