@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -16,14 +18,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Forbidden origin" }, { status: 403, headers });
   }
   const { id } = await params;
+  const session = await getServerSession(authOptions);
+  const customerId = session?.user?.role === "customer" ? session.user.id : null;
   const token = /^Bearer ([a-f0-9]{64})$/.exec(request.headers.get("authorization") || "")?.[1];
-  if (!token || !id || id.length > 128) {
+  if ((!token && !customerId) || !id || id.length > 128) {
     return NextResponse.json({ error: "Unauthorized checkout session" }, { status: 401, headers });
   }
 
   try {
     const order = await prisma.order.findFirst({
-      where: { id, checkoutAccessHash: accessHash(token) },
+      where: { id, OR: [
+        ...(customerId ? [{ customerId }] : []),
+        ...(token ? [{ checkoutAccessHash: accessHash(token), customer: { account: { is: null } } }] : []),
+      ] },
       select: { id: true, orderNumber: true, status: true },
     });
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404, headers });
