@@ -18,7 +18,7 @@ export default function BuyerLoginPage() {
     try {
       const result = await signIn("customer", { email, password, redirect: false });
       if (!result?.ok || result.error) {
-        setError("Email atau password tidak sesuai.");
+        setError("Email/password tidak sesuai, akun belum diverifikasi, atau percobaan login sedang dibatasi.");
         return;
       }
       router.push("/account/orders");
@@ -47,6 +47,7 @@ export default function BuyerLoginPage() {
             <LogIn size={18}/>{loading ? "Masuk..." : "Masuk"}
           </button>
         </form>
+        <div className="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-blue-700"><Link href="/account/forgot-password" className="underline">Lupa password?</Link><Link href="/account/verify" className="underline">Belum verifikasi email?</Link></div>
         <p className="mt-5 text-sm text-slate-600">Belum punya akun? <Link href="/account/register" className="font-bold text-blue-700 underline">Daftar sekarang</Link></p>
         <p className="mt-3 text-xs text-slate-500">Akun pembeli berbeda dari akun admin toko.</p>
       </div>
