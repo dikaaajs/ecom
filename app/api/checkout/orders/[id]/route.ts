@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { accessHash } from "@/lib/payment/checkout";
@@ -9,13 +11,21 @@ const headers = { "Cache-Control": "private, no-store" };
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!id || id.length > 128) return NextResponse.json({ error: "Invalid ID" }, { status: 400, headers });
+  const session = await getServerSession(authOptions);
+  const customerId = session?.user?.role === "customer" ? session.user.id : null;
   const auth = request.headers.get("authorization") || "";
   const token = /^Bearer ([a-f0-9]{64})$/.exec(auth)?.[1];
-  if (!token) return NextResponse.json({ error: "Order access requires checkout session" }, { status: 401, headers });
+  if (!customerId && !token) return NextResponse.json({ error: "Login akun atau sesi checkout diperlukan." }, { status: 401, headers });
 
   try {
     const order = await prisma.order.findFirst({
-      where: { id, checkoutAccessHash: accessHash(token) },
+      where: {
+        id,
+        OR: [
+          ...(customerId ? [{ customerId }] : []),
+          ...(token ? [{ checkoutAccessHash: accessHash(token) }] : []),
+        ],
+      },
       select: {
         id: true, orderNumber: true, status: true, subtotal: true, shippingCost: true,
         total: true, currency: true, createdAt: true,
