@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Bookmark, Menu, ShoppingCart, UserRound } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +22,8 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(pathname == "/" ? false : true);
   const router = useRouter();
   const { count, ready } = useCart();
+  const { data: session } = useSession();
+  const accountHref = session?.user?.role === "customer" ? "/account/orders" : "/account/login";
 
   useEffect(() => {
     if (pathname !== "/") {
@@ -84,6 +87,7 @@ export function Navbar() {
               Explore
             </Link>
             <Link href="/cart" className="flex items-center gap-2 px-2 py-2 text-lg font-medium"><ShoppingCart size={19} /> Cart {ready && count > 0 ? `(${count})` : ""}</Link>
+            <Link href={accountHref} className="flex items-center gap-2 px-2 py-2 text-lg font-medium"><UserRound size={19}/>{session?.user?.role === "customer" ? "Pesanan Saya" : "Masuk / Daftar"}</Link>
           </div>
         </SheetContent>
       </Sheet>
@@ -107,13 +111,11 @@ export function Navbar() {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Button
-              className={`cursor-pointer transition-colors ${
-                "storefront-btn-primary"
-              }`}
-            >
-              <UserRound />
-              Sign in
+            <Button asChild className="storefront-btn-primary cursor-pointer transition-colors">
+              <Link href={accountHref}>
+                <UserRound size={18}/>
+                {session?.user?.role === "customer" ? "Pesanan Saya" : "Masuk / Daftar"}
+              </Link>
             </Button>
           </NavigationMenuItem>
         </NavigationMenuList>
