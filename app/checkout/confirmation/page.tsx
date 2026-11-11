@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, CreditCard, RefreshCw, ShoppingBag } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, CreditCard, Download, RefreshCw, ShoppingBag } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
 import { CHECKOUT_STORAGE_KEY, type CheckoutSession } from "@/lib/payment/constants";
 
@@ -15,7 +15,7 @@ type OrderStatus = {
   total: string | null;
   currency: string;
   createdAt: string;
-  items: { productTitle: string; quantity: number; lineTotal: string; productType: string }[];
+  items: { productId: string | null; productTitle: string; quantity: number; lineTotal: string; productType: string }[];
   payment: null | { state: string; paidAt: string | null; redirectUrl: string | null };
   shipment: null | { courier: string | null; service: string | null; status: string; trackingNumber: string | null };
 };
@@ -29,6 +29,8 @@ export default function OrderConfirmationPage() {
   const [order, setOrder] = useState<OrderStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [downloadBusy, setDownloadBusy] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState("");
 
   const load = useCallback(async (record: CheckoutSession, signal?: AbortSignal) => {
     setLoading(true);
@@ -94,6 +96,48 @@ export default function OrderConfirmationPage() {
     }
   };
 
+  const downloadPurchasedFile = async (productId: string) => {
+    if (!session || !order || downloadBusy) return;
+    setDownloadBusy(productId);
+    setDownloadError("");
+    try {
+      const response = await fetch(
+        "/api/checkout/orders/" + encodeURIComponent(session.orderId) + "/digital-download",
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + session.accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ productId }),
+          cache: "no-store",
+        },
+      );
+      const result: { url?: string; fileName?: string; error?: string } = await response.json();
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || "Gagal menyiapkan unduhan.");
+      }
+      const url = new URL(result.url);
+      // Only open a short-lived URL from this configured Supabase project,
+      // not an arbitrary external link supplied by a malformed response.
+      const origin = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (!origin || url.origin !== new URL(origin).origin || url.protocol !== "https:") {
+        throw new Error("URL penyimpanan file tidak tepercaya.");
+      }
+      const anchor = document.createElement("a");
+      anchor.href = url.href;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    } catch (caught) {
+      setDownloadError(caught instanceof Error ? caught.message : "File tidak dapat diunduh.");
+    } finally {
+      setDownloadBusy(null);
+    }
+  };
+
   const paid = !!order && ["PAID", "PROCESSING", "SHIPPED", "COMPLETED"].includes(order.status);
   const pending = order?.status === "PENDING_PAYMENT";
   const redirectUrl = order?.payment?.redirectUrl;
@@ -129,15 +173,33 @@ export default function OrderConfirmationPage() {
               </div>
               <div className="mt-5 divide-y border-y">
                 {order.items.map((item, i) => (
-                  <div className="flex justify-between gap-4 py-3 text-sm" key={i}>
-                    <div><strong>{item.productTitle}</strong><p className="text-xs text-slate-500">{item.quantity} × {item.productType}</p></div>
-                    <span>{rupiah(item.lineTotal)}</span>
+                  <div className="flex items-start justify-between gap-4 py-3 text-sm" key={i}>
+                    <div className="min-w-0">
+                      <strong>{item.productTitle}</strong>
+                      <p className="text-xs text-slate-500">{item.quantity} × {item.productType}</p>
+                      {item.productType === "DIGITAL" && paid && item.productId && (
+                        <button type="button" disabled={!!downloadBusy}
+                          onClick={() => void downloadPurchasedFile(item.productId!)}
+                          className="mt-2 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50">
+                          <Download size={15}/>
+                          {downloadBusy === item.productId ? "Menyiapkan..." : "Unduh file digital"}
+                        </button>
+                      )}
+                      {item.productType === "DIGITAL" && !paid && (
+                        <p className="mt-1 text-xs text-amber-700">Unduhan tersedia setelah pembayaran terverifikasi.</p>
+                      )}
+                      {item.productType === "DIGITAL" && paid && !item.productId && (
+                        <p className="mt-1 text-xs text-amber-700">File tidak tersedia. Hubungi penjual.</p>
+                      )}
+                    </div>
+                    <span className="shrink-0">{rupiah(item.lineTotal)}</span>
                   </div>
                 ))}
               </div>
+              {downloadError && <p role="alert" className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{downloadError}</p>}
               {order.shipment && <p className="mt-4 text-sm text-slate-600">Pengiriman: {order.shipment.courier} · {order.shipment.service} · {order.shipment.status}</p>}
               {paid ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-                Pembayaran tercatat di server. Pesanan fisik dapat diproses admin. Akses file digital masih memerlukan verifikasi identitas pembeli sebelum dapat diberikan.
+                Pembayaran tercatat di server. File digital yang dibeli dapat diunduh melalui sesi checkout ini. Simpan file setelah diunduh karena akses guest hanya tersedia di tab browser yang sama.
               </p> : <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
                 Status diperbarui melalui webhook atau pemeriksaan langsung ke Midtrans dari server, bukan hanya berdasarkan tampilan selesai bayar.
               </p>}
@@ -157,7 +219,7 @@ export default function OrderConfirmationPage() {
             <Link href="/product" className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-blue-700 hover:underline">Kembali belanja</Link>
           </div>
         </section>
-        <p className="text-xs leading-5 text-slate-500">Status bersifat privat dan hanya dapat dibuka dari sesi checkout tab yang sama. Simpan detail pesanan dan jangan bagikan token checkout.</p>
+        <p className="text-xs leading-5 text-slate-500">Status dan unduhan tersedia untuk pemegang sesi checkout tab yang sama. Tautan file berlaku 60 detik; jangan membagikan token checkout maupun tautan unduh. Untuk akses lintas perangkat diperlukan sistem akun pembeli.</p>
       </main>
     </div>
   );
