@@ -19,19 +19,18 @@ export default function VerifyEmailPage() {
     const token = params.get("token");
     if (!token) return;
     window.history.replaceState(null, "", "/account/verify");
-    const controller = new AbortController();
+    // Keep this one-time request alive across React StrictMode effect replay.
     setBusy(true); setError("");
     void fetch("/api/account/verify", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }), signal: controller.signal,
+      body: JSON.stringify({ token }),
     }).then(async response => {
       const result: { message?: string; error?: string } = await response.json();
       if (!response.ok) throw new Error(result.error || "Verifikasi tidak berhasil.");
-      if (!controller.signal.aborted) setNotice(result.message || "Email telah diverifikasi.");
+      setNotice(result.message || "Email telah diverifikasi.");
     }).catch(err => {
-      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Verifikasi gagal.");
-    }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
-    return () => controller.abort();
+      setError(err instanceof Error ? err.message : "Verifikasi gagal.");
+    }).finally(() => { setBusy(false); });
   }, []);
 
   const resend = async (event: FormEvent) => {
