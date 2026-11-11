@@ -1,17 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 export default function VerifyEmailPage() {
-  const params = useSearchParams();
-  const [email, setEmail] = useState(params.get("email") || "");
+  const started = useRef(false);
+  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("Periksa inbox dan folder spam untuk link verifikasi.");
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get("email");
+    if (emailParam) setEmail(emailParam);
     const token = params.get("token");
     if (!token) return;
     window.history.replaceState(null, "", "/account/verify");
@@ -28,7 +32,7 @@ export default function VerifyEmailPage() {
       if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Verifikasi gagal.");
     }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => controller.abort();
-  }, [params]);
+  }, []);
 
   const resend = async (event: FormEvent) => {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
