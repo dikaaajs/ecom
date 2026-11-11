@@ -58,6 +58,15 @@ export default function CheckoutPage() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    if (!customer) return;
+    setDigitalContact(previous => ({
+      recipient: previous.recipient || customer.name || "",
+      email: customer.email || "",
+      phone: previous.phone,
+    }));
+  }, [customer?.email, customer?.name]);
+
   const load = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
     setError("");
