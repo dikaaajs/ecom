@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -132,6 +134,13 @@ export async function POST(request: Request) {
 
   let createdId: string | null = null;
   try {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.role !== "customer" || !session.user.id) {
+      throw new CheckoutError("Silakan login atau daftar akun pembeli sebelum checkout.", 401);
+    }
+    const account = await prisma.customerAccount.findUnique({ where: { customerId: session.user.id } });
+    if (!account) throw new CheckoutError("Akun pembeli tidak ditemukan.", 401);
+    if (contact.email.trim().toLowerCase() !== account.email) throw new CheckoutError("Email checkout harus sesuai email akun pembeli.", 422);
     const products = await prisma.product.findMany({
       where: { id: { in: items.map(item => item.productId) }, isPublished: true },
       select: {
@@ -192,9 +201,9 @@ export async function POST(request: Request) {
         if (updated.count !== 1) throw new CheckoutError("Stok tidak mencukupi. Perbarui keranjang.", 409);
       }
 
-      const customer = await tx.customer.create({
-        data: { name: contact.recipient, email: contact.email.toLowerCase(), phone: contact.phone },
-      });
+      const customer = await tx.customer.findUnique({ where: { id: account.customerId } });
+      if (!customer) throw new CheckoutError("Akun pembeli tidak ditemukan.", 401);
+      await tx.customer.update({ where: { id: customer.id }, data: { name: contact.recipient, phone: contact.phone } });
       if (address) {
         await tx.customerAddress.create({
           data: {
