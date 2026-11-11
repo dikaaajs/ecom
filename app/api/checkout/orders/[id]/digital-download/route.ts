@@ -76,7 +76,7 @@ export async function POST(
         id,
         OR: [
           ...(customerId ? [{ customerId }] : []),
-          ...(token ? [{ checkoutAccessHash: accessHash(token) }] : []),
+          ...(token ? [{ checkoutAccessHash: accessHash(token), customer: { account: { is: null } } }] : []),
         ],
       },
       select: {
