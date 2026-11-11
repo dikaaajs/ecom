@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { normalizeEmail, permitAttempt, requestIp } from "@/lib/account/security";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,14 +13,30 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        const email = credentials?.email?.trim().toLowerCase();
+      async authorize(credentials, request) {
+        const email = credentials?.email ? normalizeEmail(credentials.email) : "";
         if (!email || !credentials?.password) return null;
-        const account = await prisma.customerAccount.findUnique({
-          where: { email }, include: { customer: true },
-        });
-        if (!account || !(await bcrypt.compare(credentials.password, account.passwordHash))) return null;
-        return { id: account.customerId, email: account.email, name: account.customer.name, role: "customer" };
+        try {
+          const ip = requestIp(request);
+          const byIp = await permitAttempt("login-ip", ip, 35, 15);
+          const byEmail = await permitAttempt("login-email", email, 10, 15);
+          if (!byIp || !byEmail) return null;
+          const account = await prisma.customerAccount.findUnique({
+            where: { email }, include: { customer: true },
+          });
+          if (!account || !account.emailVerifiedAt ||
+              !(await bcrypt.compare(credentials.password, account.passwordHash))) return null;
+          return {
+            id: account.customerId,
+            email: account.email,
+            name: account.customer.name,
+            role: "customer",
+            sessionVersion: account.sessionVersion,
+          };
+        } catch (error) {
+          console.error("Buyer auth unavailable", error);
+          return null; // fail closed on limiter/database outage
+        }
       },
     }),
     CredentialsProvider({
@@ -74,6 +91,22 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role;
         token.username = user.username;
+        token.sessionVersion = user.sessionVersion;
+      }
+      // Check customer session version on every NextAuth session refresh.
+      // Old tokens are demoted after password reset; owner-only APIs deny them.
+      if (token.role === "customer") {
+        try {
+          const account = await prisma.customerAccount.findUnique({
+            where: { customerId: token.sub! },
+            select: { emailVerifiedAt: true, sessionVersion: true },
+          });
+          if (!account?.emailVerifiedAt || token.sessionVersion !== account.sessionVersion) {
+            token.role = "revoked";
+          }
+        } catch {
+          token.role = "revoked";
+        }
       }
       return token;
     },
