@@ -31,10 +31,13 @@ export async function permitAttempt(scope: string, value: string, maximum: numbe
   return row.count <= maximum;
 }
 
-export function requestIp(req: { headers: Headers }) {
+export function requestIp(req: { headers: Headers | Record<string, string | undefined> }) {
+  const forwarded = req.headers instanceof Headers
+    ? req.headers.get("x-forwarded-for")
+    : req.headers["x-forwarded-for"];
   // Only trust forwarded headers when configured through a trusted reverse proxy.
   return process.env.AUTH_TRUST_PROXY === "true"
-    ? (req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown").slice(0, 100)
+    ? (forwarded?.split(",")[0]?.trim() || "unknown").slice(0, 100)
     : "untrusted-client";
 }
 
