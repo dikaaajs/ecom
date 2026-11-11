@@ -45,12 +45,16 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.username || !credentials?.password) {
           return null;
         }
 
         try {
+          // Keep the existing admin provider separate, but protect it as well.
+          const ipOk = await permitAttempt("admin-login-ip", requestIp(request), 35, 15);
+          const nameOk = await permitAttempt("admin-login-name", credentials.username, 10, 15);
+          if (!ipOk || !nameOk) return null;
           const user = await prisma.adminUser.findUnique({
             where: { username: credentials.username },
           });
