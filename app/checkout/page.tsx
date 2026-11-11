@@ -40,7 +40,23 @@ export default function CheckoutPage() {
   const [digitalContact, setDigitalContact] = useState({ recipient: "", email: "", phone: "" });
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [customer, setCustomer] = useState<{ name?: string; email?: string } | null>(null);
+  const [accountLoading, setAccountLoading] = useState(true);
   const checkoutTokenRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/auth/session", { cache: "no-store", signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        if (controller.signal.aborted) return;
+        const user = data?.user;
+        setCustomer(user?.role === "customer" ? { name: user.name, email: user.email } : null);
+      })
+      .catch(() => { if (!controller.signal.aborted) setCustomer(null); })
+      .finally(() => { if (!controller.signal.aborted) setAccountLoading(false); });
+    return () => controller.abort();
+  }, []);
 
   const load = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
@@ -130,7 +146,9 @@ export default function CheckoutPage() {
     : digitalContact.recipient.trim().length >= 2 &&
       /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(digitalContact.email) &&
       digitalContact.phone.trim().length >= 8;
-  const canPay = !!quote?.valid && quote.digitalAssetReady && quote.paymentConfigured && !!contactReady &&
+  const buyerEmail = quote?.delivery.shippingRequired ? savedAddress?.email : digitalContact.email;
+  const accountMatches = !!customer?.email && buyerEmail?.trim().toLowerCase() === customer.email.trim().toLowerCase();
+  const canPay = !!quote?.valid && quote.digitalAssetReady && quote.paymentConfigured && !!contactReady && accountMatches &&
     (!quote.delivery.shippingRequired || (quote.shippingOriginConfigured && !!selectedRate));
 
   return (
@@ -245,6 +263,16 @@ export default function CheckoutPage() {
                 <MapPin size={15} className="mr-1 inline"/>
                 {quote.delivery.shippingRequired ? "Setelah menyimpan draft alamat, tekan Cek ongkir dan pilih layanan ekspedisi. Tarif dapat berubah sebelum pembayaran." : "Pengiriman digital tidak membutuhkan jasa ekspedisi."}
               </div>
+              {accountLoading ? <p className="mt-4 text-xs text-slate-500">Memeriksa akun pembeli...</p> :
+                !customer ? <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+                  <p className="font-bold">Login akun pembeli diperlukan sebelum membuat pesanan.</p>
+                  <div className="mt-2 flex gap-3">
+                    <Link href="/account/login" className="font-bold underline">Masuk</Link>
+                    <Link href="/account/register" className="font-bold underline">Daftar akun</Link>
+                  </div>
+                </div> : !accountMatches && <p role="alert" className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">
+                  Masukkan email yang sesuai dengan akun login: <strong>{customer.email}</strong>.
+                </p>}
               {paymentError && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{paymentError}</p>}
               <button type="button" onClick={() => void beginPayment()} disabled={!canPay || submitting}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">
