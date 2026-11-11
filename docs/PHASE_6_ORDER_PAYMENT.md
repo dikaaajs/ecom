@@ -161,3 +161,59 @@ https://docs.midtrans.com/docs/snap-snap-integration-guide
 https://docs.midtrans.com/docs/https-notification-webhooks
 https://docs.midtrans.com/docs/get-status-api-requests
 https://docs.midtrans.com/docs/snap-advanced-feature
+
+## Digital delivery: paid guest checkout session (new)
+
+A new `POST /api/checkout/orders/[id]/digital-download` endpoint creates a
+**60-second private Supabase Storage signed download URL**. It is invoked from
+`/checkout/confirmation` and never from a public product page.
+
+Security requirements implemented:
+- The client must present `Authorization: Bearer <64-hex-character token>`
+  for **this exact order ID**. Only its SHA-256 hash is stored in the Order table.
+  A number/email/product ID alone cannot access the file.
+- Server requires both a paid/fulfillment-safe order status
+  (PAID, PROCESSING, SHIPPED or COMPLETED) and the corresponding
+  `PaymentTransaction.state=PAID` with `paidAt` set.
+- Server verifies `OrderItem.productType=DIGITAL` and that the requested
+  `productId` is part of the purchased order; no unrelated products can be
+  downloaded with the same token.
+- `requirePrivateBucket()` confirms Supabase Storage bucket is still PRIVATE.
+  Download is only signed for that configured bucket and a product-bound path.
+- Server never returns the Supabase service key, or a permanent download URL.
+  Requests and signed links should never be logged.
+- Best-effort process-local limit of 5 signing requests/order/product/minute;
+  a shared distributed limiter is needed before high-volume production.
+
+The buyer can now click **Unduh file digital** next to digital line items
+once the payment has been verified. The file opens via a temporary signed URL.
+
+**Important limitation:** this feature uses an unguessable *guest checkout
+bearer capability*, not a verified customer login. Whoever obtains the browser
+session token can access that order while the token remains valid; whoever
+obtains an already-signed URL can use it until its 60-second expiry.
+An authenticated customer account, device-independent order history, token
+rotation/recovery/revocation, download auditing and longer-term entitlements
+are mandatory before describing this as verified personal identity or a
+complete production-ready digital library. No automated email of access
+credentials is provided.
+
+### Digital delivery QA (sandbox and staging)
+
+1. With a paid digital order in the same browser tab used for checkout, open
+   `/checkout/confirmation`. Confirm the button **Unduh file digital** appears.
+2. Click it and check the correct private PDF/ZIP/image can be downloaded;
+   verify the signed URL expires after 60 seconds.
+3. Unpaid order: button must not appear, and direct API POST must respond 403.
+4. Without a bearer token, direct API POST must respond 401.
+5. Use an unrelated order ID, product ID or another checkout token:
+   response must not contain a signed URL (404).
+6. A paid physical-only order must never sign a digital download.
+7. Make the bucket public in a disposable staging environment only;
+   confirm download signing refuses to proceed. Restore Private immediately.
+8. Check the API response includes only signed URL/filename/TTL and no service
+   role credentials. Do not persist or log signed URLs.
+9. Reload confirmation in the same tab: guest session persists. A fresh tab or
+   browser without this session is intentionally not authorized.
+10. Test on localhost and staging; run `npx tsc --noEmit`, `npm run build`,
+    and review Vercel deployment before merging PR #7.
