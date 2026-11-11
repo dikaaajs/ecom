@@ -6,6 +6,23 @@ import { prisma } from "./prisma";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
+      id: "customer",
+      name: "Akun Pembeli",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.trim().toLowerCase();
+        if (!email || !credentials?.password) return null;
+        const account = await prisma.customerAccount.findUnique({
+          where: { email }, include: { customer: true },
+        });
+        if (!account || !(await bcrypt.compare(credentials.password, account.passwordHash))) return null;
+        return { id: account.customerId, email: account.email, name: account.customer.name, role: "customer" };
+      },
+    }),
+    CredentialsProvider({
       name: "credentials",
       credentials: {
         username: { label: "Username", type: "text" },
