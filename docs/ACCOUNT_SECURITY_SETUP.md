@@ -78,3 +78,27 @@ Migration: `20261111010000_account_security`, following the prior customer-accou
 - Consider optional MFA, verified-email changes, admin 2FA, audit trails, session management and breach-password screening.
 - Avoid logging raw verification links, reset links, session tokens or signed storage URLs.
 - Existing session cookies are JWT and require request-time account session-version checks. Evaluate database-backed sessions for wider revocation controls if required.
+
+## Extra controls in this iteration
+- Admin login now also has Postgres-backed IP + username throttling. Admins
+  continue to use the existing credential provider.
+- Verification and password reset token POST endpoints have a short IP attempt
+  limit in the database.
+- The account layout emits `Referrer-Policy: no-referrer` metadata to reduce
+  risk of verification/reset token leakage through browser referrer headers.
+- React StrictMode effect replay cannot cancel the one-time email verification
+  request during local development.
+
+### Note on session revocation
+Customer JWTs carry a `sessionVersion`; it is compared against PostgreSQL
+whenever the session is checked, and stale sessions receive the non-customer
+`revoked` role after reset. Account-only API handlers strictly require
+`session.user.role === "customer"`. This is *logical rejection* of sessions,
+not immediate deletion of all browser cookies. For stronger central revocation,
+plan database-backed sessions and a session management page.
+
+### Sender/URL restrictions
+No outbound email is sent without `RESEND_API_KEY`, `ACCOUNT_EMAIL_FROM`,
+and `ACCOUNT_APP_URL` or `NEXTAUTH_URL`. Link generation accepts HTTPS
+or localhost HTTP only. Set `ACCOUNT_APP_URL` explicitly on every staging
+and production environment to avoid links pointing to the wrong deployment.
