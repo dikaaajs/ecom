@@ -140,6 +140,7 @@ model Customer {
   phone     String?
   addresses CustomerAddress[]
   orders    Order[]
+  account   CustomerAccount?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -280,4 +281,17 @@ model PaymentTransaction {
 
   @@index([state, createdAt])
   @@map("payment_transactions")
+}
+
+/** Customer credentials separate from merchant/admin accounts. */
+model CustomerAccount {
+  id           String   @id @default(cuid())
+  customerId   String   @unique
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("customer_accounts")
 }
