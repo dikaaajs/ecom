@@ -2,12 +2,9 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { UserRoundPlus } from "lucide-react";
 
 export default function BuyerRegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,10 +24,7 @@ export default function BuyerRegisterPage() {
       });
       const json: { error?: string } = await res.json();
       if (!res.ok) throw new Error(json.error || "Pendaftaran gagal.");
-      const login = await signIn("customer", { email, password, redirect: false });
-      if (!login?.ok || login.error) throw new Error("Akun terdaftar. Silakan login.");
-      router.push("/account/orders");
-      router.refresh();
+      window.location.assign("/account/verify?email=" + encodeURIComponent(email.trim().toLowerCase()));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Pendaftaran gagal.");
     } finally { setBusy(false); }
@@ -39,7 +33,7 @@ export default function BuyerRegisterPage() {
     <div className="mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-7 shadow-sm">
       <UserRoundPlus className="text-blue-600" size={27}/>
       <h1 className="mt-3 text-2xl font-extrabold">Daftar Akun Pembeli</h1>
-      <p className="mt-2 text-sm text-slate-500">Simpan riwayat belanja dan akses produk digital dengan login.</p>
+      <p className="mt-2 text-sm text-slate-500">Simpan riwayat belanja dan akses produk digital. Verifikasi email diperlukan sebelum login.</p>
       <form className="mt-6 space-y-4" onSubmit={submit}>
         <label className="block text-sm font-semibold">Nama lengkap
           <input required minLength={2} maxLength={100} autoComplete="name" value={name} onChange={e=>setName(e.target.value)}
