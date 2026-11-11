@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { accessHash } from "@/lib/payment/checkout";
@@ -40,9 +42,11 @@ export async function POST(
     return error("Permintaan lintas situs tidak diizinkan.", 403);
   }
 
+  const session = await getServerSession(authOptions);
+  const customerId = session?.user?.role === "customer" ? session.user.id : null;
   const auth = request.headers.get("authorization") || "";
   const token = /^Bearer ([a-f0-9]{64})$/.exec(auth)?.[1];
-  if (!token) return error("Sesi pesanan tidak tersedia. Buka dari tab checkout yang sama.", 401);
+  if (!customerId && !token) return error("Silakan login untuk mengunduh pesanan.", 401);
 
   const { id } = await params;
   if (!id || id.length > 128) return error("ID pesanan tidak valid.", 400);
@@ -68,7 +72,13 @@ export async function POST(
 
   try {
     const order = await prisma.order.findFirst({
-      where: { id, checkoutAccessHash: accessHash(token) },
+      where: {
+        id,
+        OR: [
+          ...(customerId ? [{ customerId }] : []),
+          ...(token ? [{ checkoutAccessHash: accessHash(token) }] : []),
+        ],
+      },
       select: {
         id: true,
         status: true,
