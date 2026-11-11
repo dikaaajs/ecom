@@ -24,3 +24,6 @@ CREATE TABLE "auth_rate_limits" (
   CONSTRAINT "auth_rate_limits_pkey" PRIMARY KEY ("key")
 );
 CREATE INDEX "auth_rate_limits_expiresAt_idx" ON "auth_rate_limits"("expiresAt");
+
+ALTER TABLE "account_action_tokens" ADD CONSTRAINT "account_action_tokens_accountId_fkey"
+FOREIGN KEY ("accountId") REFERENCES "customer_accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
