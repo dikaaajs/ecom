@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-11-11",
+  "currency": "IDR",
+  "source": "https://www.logitech.com/id-id/shop",
+  "products": [
+    {
+      "slug": "logitech-lift-graphite",
+      "title": "Logitech Lift Vertical Ergonomic Mouse — Graphite",
+      "price": 1289000,
+      "category": "Mouse",
+      "description": "Mouse vertikal dengan sudut 57 derajat untuk tangan kecil hingga sedang. Grip bertekstur dan sandaran ibu jari mendukung posisi tangan saat bekerja.",
+      "sourcePath": "lift-vertical-ergonomic-mouse.910-006479",
+      "weight": 500,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/mice/lift-vertical-ergonomic-mouse/2026-update/gallery/graphite/lift-mouse-top-angle-graphite-gallery-1.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/lift-vertical-ergonomic-mouse.910-006479"
+    },
+    {
+      "slug": "logitech-mk295-graphite",
+      "title": "Logitech MK295 Silent Wireless Combo — Graphite",
+      "price": 589000,
+      "category": "Keyboard & Mouse Combo",
+      "description": "Paket keyboard dan mouse wireless dengan teknologi SilentTouch. Pilihan praktis untuk meja kerja yang lebih tenang.",
+      "sourcePath": "mk295-keyboard-mouse-combo.920-009814",
+      "weight": 1000,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/combos/mk295-keyboard-mouse-combo/gallery/mk295-graphite-gallery-01-new.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/mk295-keyboard-mouse-combo.920-009814"
+    },
+    {
+      "slug": "logitech-mx-brio-pale-gray",
+      "title": "Logitech MX Brio 4K Webcam — Pale Gray",
+      "price": 3299900,
+      "category": "Webcam",
+      "description": "Webcam Ultra HD 4K untuk rapat video dan streaming. Mendukung penyesuaian tampilan video untuk kebutuhan ruang kerja.",
+      "sourcePath": "mx-brio-4k-webcam.960-001561",
+      "weight": 500,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/webcams/mx-brio/buy/migration-assets-for-delorean-2025/gallery/mx-brio-3qtr-front-right-pale-gray.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/mx-brio-4k-webcam.960-001561"
+    },
+    {
+      "slug": "logitech-mx-keys-s",
+      "title": "Logitech MX Keys S Wireless Keyboard",
+      "price": 2249990,
+      "category": "Keyboard",
+      "description": "Keyboard wireless seri MX dengan desain full-size untuk kebutuhan produktivitas dan pengetikan sehari-hari.",
+      "sourcePath": "mx-keys-s.920-011563",
+      "weight": 1200,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/keyboards/mx-keys-s/migration-assets-for-delorean-2025/gallery/mx-keys-s-top-view-graphite-us.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/mx-keys-s.920-011563"
+    },
+    {
+      "slug": "logitech-signature-m650-graphite",
+      "title": "Logitech Signature M650 Wireless Mouse — Graphite",
+      "price": 599000,
+      "category": "Mouse",
+      "description": "Mouse wireless dengan bentuk nyaman untuk penggunaan harian. SmartWheel membantu berpindah antara pengguliran presisi dan cepat.",
+      "sourcePath": "m650-signature-wireless-mouse",
+      "weight": 300,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/mice/m650/update-2025/gallery/graphite-medium/m650-graphite-medium-top-angle-gallery-1.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/m650-signature-wireless-mouse"
+    },
+    {
+      "slug": "logitech-wave-keys-off-white",
+      "title": "Logitech Wave Keys Ergonomic Keyboard — Off-white",
+      "price": 1289000,
+      "category": "Keyboard",
+      "description": "Keyboard ergonomis berbentuk gelombang dengan sandaran telapak tangan. Dirancang untuk kenyamanan saat bekerja di meja.",
+      "sourcePath": "wave-keys-ergonomic-wireless.920-012282",
+      "weight": 1100,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/keyboards/wave-keys/gallery/wave-keys-top-off-white-gallery-us.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/wave-keys-ergonomic-wireless.920-012282"
+    },
+    {
+      "slug": "logitech-brio-100-graphite",
+      "title": "Logitech Brio 100 Full HD Webcam — Graphite",
+      "price": 699100,
+      "category": "Webcam",
+      "description": "Webcam Full HD 1080p dengan penyeimbangan cahaya otomatis, mikrofon terintegrasi, dan penutup privasi fisik.",
+      "sourcePath": "brio-100-webcam.960-001587",
+      "weight": 300,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/webcams/brio-100/gallery/brio-100-gallery-graphite-1.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/brio-100-webcam.960-001587"
+    },
+    {
+      "slug": "logitech-c270-hd",
+      "title": "Logitech C270 HD Webcam — Dark Grey",
+      "price": 449000,
+      "category": "Webcam",
+      "description": "Webcam HD 720p untuk panggilan video sehari-hari. Dilengkapi koreksi pencahayaan otomatis dan mikrofon peredam noise.",
+      "sourcePath": "c270-hd-webcam.960-000584",
+      "weight": 300,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/products/logitech/webcams/c270-hd-webcam/gallery/c270-hd-webcam-1-0224.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/c270-hd-webcam.960-000584"
+    },
+    {
+      "slug": "logitech-logi-bolt-usb-a",
+      "title": "Logitech Logi Bolt USB Receiver — USB-A",
+      "price": 199000,
+      "category": "Aksesori",
+      "description": "Receiver USB-A untuk mouse dan keyboard yang mendukung Logi Bolt. Periksa kompatibilitas perangkat sebelum membeli.",
+      "sourcePath": "logi-bolt-usb-receiver",
+      "weight": 100,
+      "imageUrl": "https://resource.logitech.com/w_900,c_pad,q_auto,f_auto/d_transparent.gif/content/dam/logitech/en/products/mice/logi-bolt-usb-receiver/gallery/logi-bolt-usb-receiver-gallery-01.png",
+      "sourceUrl": "https://www.logitech.com/id-id/shop/p/logi-bolt-usb-receiver"
+    }
+  ]
+}
