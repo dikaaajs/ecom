@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { tokenHash } from "@/lib/account/security";
+import { tokenHash, permitAttempt, requestIp } from "@/lib/account/security";
 import { tokenInput } from "@/lib/account/forms";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,9 @@ export async function POST(request: Request) {
   const input = tokenInput.safeParse(payload);
   if (!input.success) return NextResponse.json({ error: "Token tidak valid." }, { status: 400, headers });
 
+  if (!(await permitAttempt("verify-token-ip", requestIp(request), 25, 15))) {
+    return NextResponse.json({ error: "Terlalu sering mencoba verifikasi. Coba lagi nanti." }, { status: 429, headers });
+  }
   const hash = tokenHash(input.data.token);
   try {
     const token = await prisma.accountActionToken.findUnique({
