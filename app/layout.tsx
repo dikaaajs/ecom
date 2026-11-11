@@ -22,6 +22,7 @@ export default async function RootLayout({
   const settings = await storefrontSettings();
   return (
     <html lang="id">
+      <head><link rel="preload" href="/font/Satoshi-Variable.ttf" as="font" type="font/ttf" crossOrigin="anonymous" /></head>
       <body className={`overflow-x-hidden antialiased`}>
         <AuthSessionProvider>
           <SiteSettingsProvider initial={settings}>

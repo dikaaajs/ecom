@@ -13,6 +13,11 @@ Available controls:
 - Collection heading/description, footer description and public contacts.
 - Optional store-location section, photo, public address and HTTPS map link.
 - Optional FAQ with up to 20 editable questions and answers.
+- Optional customer-review section with up to 12 manually published real
+  testimonials (customer name, integer rating 1–5, comment, optional product).
+  Average/count are calculated solely from these entries. Defaults contain no
+  reviews, no invented ratings and no verified-purchase badges. This is curated
+  store content, not an automated verified-purchase review system.
 - Instagram, Facebook, YouTube and Twitter links; empty links are hidden.
 
 Images can use HTTPS URLs, paths to files in `public/`, or direct uploads.

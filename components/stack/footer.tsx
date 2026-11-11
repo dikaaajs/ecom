@@ -1,19 +1,13 @@
 ﻿"use client";
 import Link from "next/link";
+import { ArrowUpRight, Mail } from "lucide-react";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
-export function Footer({ compact = false }: { compact?: boolean }) {
-  const { settings: s } = useSiteSettings();
-  return <footer style={{ backgroundColor: s.footerColor, color: s.footerTextColor }} className={"relative font-satoshi " + (compact ? "mt-0" : "mt-24")}>
-    <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-3">
-      <div><Link href="/" className="flex items-center gap-3 text-xl font-bold">{s.logoUrl && <img src={s.logoUrl} alt="" className="h-10 max-w-32 object-contain"/>}{s.siteName}</Link><p className="mt-4 whitespace-pre-line opacity-80">{s.footerDescription}</p></div>
-      <div><h3 className="font-bold">Hubungi kami</h3><div className="mt-4 space-y-3">
-        {s.contactEmail && <a className="block break-all underline" href={`mailto:${s.contactEmail}`}>{s.contactEmail}</a>}
-        {s.contactPhone && <p>{s.contactPhone}</p>}{s.storeAddress && <p className="whitespace-pre-line">{s.storeAddress}</p>}
-        {!s.contactEmail && !s.contactPhone && !s.storeAddress && <Link href="/account/orders" className="underline">Lihat pesanan Anda</Link>}
-      </div></div>
-      <div><h3 className="font-bold">Jelajahi toko</h3><Link href="/product" className="mt-4 block underline">Semua produk</Link><Link href="/cart" className="mt-3 block underline">Keranjang</Link>
-        <div className="mt-5 flex flex-wrap gap-4">{Object.entries(s.socialLinks).filter(([,url])=>url).map(([name,url])=><a key={name} href={url} target="_blank" rel="noopener noreferrer" className="capitalize underline">{name}</a>)}</div>
-      </div>
-    </div><p className="border-t border-current/20 px-6 py-5 text-center text-sm opacity-70">© {new Date().getFullYear()} {s.siteName}. All rights reserved.</p>
+export function Footer({compact=false}:{compact?:boolean}) {
+  const {settings:s}=useSiteSettings();
+  return <footer style={{backgroundColor:s.footerColor,color:s.footerTextColor}} className={compact?"":"mt-24"}>
+    <div className="landing-container"><div className="grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr] md:gap-16"><div><Link href="/" className="inline-flex items-center gap-3">{s.logoUrl&&<img src={s.logoUrl} alt="" loading="lazy" className="h-10 max-w-28 object-contain"/>}<span className="text-xl font-bold tracking-tight">{s.siteName}</span></Link><p className="mt-5 max-w-sm whitespace-pre-line text-sm leading-7 opacity-60">{s.footerDescription}</p><div className="mt-6 flex flex-wrap gap-4">{Object.entries(s.socialLinks).filter(([,url])=>url).map(([name,url])=><a key={name} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs capitalize opacity-70 hover:opacity-100">{name}<ArrowUpRight size={12}/></a>)}</div></div>
+      <div><h2 className="text-xs font-bold uppercase tracking-[.16em] opacity-40">Jelajahi</h2><nav aria-label="Navigasi footer" className="mt-6 flex flex-col items-start gap-4 text-sm opacity-80"><Link href="/product">Semua produk</Link><Link href="/cart">Keranjang belanja</Link><Link href="/account/orders">Pesanan saya</Link><Link href="/#how-it-works">Cara belanja</Link>{s.showFaq&&<Link href="/#faq">Pertanyaan umum</Link>}</nav></div>
+      <div><h2 className="text-xs font-bold uppercase tracking-[.16em] opacity-40">Tetap terhubung</h2><div className="mt-6 space-y-4 text-sm opacity-80">{s.contactEmail&&<a className="flex items-center gap-2 break-all" href={`mailto:${s.contactEmail}`}><Mail size={15} className="shrink-0"/>{s.contactEmail}</a>}{s.contactPhone&&<p>{s.contactPhone}</p>}{s.storeAddress&&<p className="whitespace-pre-line leading-7">{s.storeAddress}</p>}{s.mapsUrl&&<a href={s.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold">Lihat lokasi<ArrowUpRight size={13}/></a>}{!s.contactEmail&&!s.contactPhone&&!s.storeAddress&&<p className="leading-7">Lihat koleksi dan informasi produk untuk mulai berbelanja.</p>}</div></div>
+    </div><div className="flex flex-wrap justify-between gap-4 border-t border-current/15 py-6 text-xs opacity-50"><p>© {new Date().getFullYear()} {s.siteName}. All rights reserved.</p><p>Perangkat pilihan. Keseharian lebih nyaman.</p></div></div>
   </footer>;
 }

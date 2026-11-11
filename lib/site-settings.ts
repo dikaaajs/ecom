@@ -14,6 +14,9 @@ export const siteSettingsSchema = z.object({
   locationImage: url, mapsUrl: z.union([z.literal(""), z.url().refine(v => new URL(v).protocol === "https:", "Gunakan HTTPS")]),
   showFaq: z.boolean(), faqTitle: z.string().max(150),
   faqItems: z.array(z.object({ question: z.string().trim().min(1).max(200), answer: z.string().trim().min(1).max(1500) }).strict()).max(20),
+  showReviews: z.boolean(), reviewsTitle: z.string().trim().min(1).max(150),
+  reviews: z.array(z.object({ name: z.string().trim().min(1).max(80), rating: z.number().int().min(1).max(5),
+    comment: z.string().trim().min(1).max(600), product: z.string().trim().max(150) }).strict()).max(12),
   socialLinks: z.object({ instagram: url, facebook: url, youtube: url, twitter: url }).strict(),
 }).strict();
 export type SiteSettings = z.infer<typeof siteSettingsSchema>;
@@ -29,6 +32,7 @@ export const defaultSiteSettings: SiteSettings = {
   contactEmail: "", contactPhone: "", storeAddress: "", showLocation: false,
   locationTitle: "Kunjungi toko kami", locationDescription: "", locationImage: "/store.webp", mapsUrl: "",
   showFaq: true, faqTitle: "Pertanyaan yang sering diajukan",
+  showReviews: true, reviewsTitle: "Dari pembeli, untuk pembeli.", reviews: [],
   faqItems: [{ question: "Bagaimana cara memesan?", answer: "Pilih produk, tambahkan ke keranjang, lalu lanjutkan ke checkout." },
     { question: "Di mana saya melihat pesanan?", answer: "Masuk ke akun pembeli dan buka halaman Pesanan Saya." }],
   socialLinks: { instagram: "", facebook: "", youtube: "", twitter: "" },

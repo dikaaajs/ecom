@@ -43,3 +43,15 @@ test("origin checks use the actual Host when Next normalizes the internal URL", 
   assert.equal(hasSameOrigin(request("null")),false);
   assert.equal(hasSameOrigin(request("http://127.0.0.1:3108/other")),false);
 });
+test("reviews start empty and require a genuine rating and complete text before publishing", () => {
+  assert.deepEqual(defaultSiteSettings.reviews, []);
+  assert.deepEqual(decodeSiteSettings([]).reviews, []);
+  const review = {name:"Pembeli",rating:4,comment:"Keyboard nyaman dipakai.",product:"Keyboard"};
+  assert.equal(siteSettingsSchema.partial().safeParse({reviews:[review]}).success,true);
+  for (const rating of [0,6,4.5]) {
+    assert.equal(siteSettingsSchema.partial().safeParse({reviews:[{...review,rating}]}).success,false);
+  }
+  assert.equal(siteSettingsSchema.partial().safeParse({reviews:[{...review,name:" "}]}).success,false);
+  assert.equal(siteSettingsSchema.partial().safeParse({reviews:[{...review,comment:""}]}).success,false);
+  assert.equal(siteSettingsSchema.partial().safeParse({reviews:Array.from({length:13},()=>review)}).success,false);
+});

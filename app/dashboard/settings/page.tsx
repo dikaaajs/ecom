@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Save, Palette, ExternalLink, RotateCcw, Plus, Trash2 } from "lucide-react";
 import { defaultSiteSettings, siteSettingsSchema, type SiteSettings } from "@/lib/site-settings";
 import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { ReviewSettings } from "@/components/settings/review-settings";
 
 type Field = { key: keyof SiteSettings; label: string; type?: "image" | "textarea" | "color" };
 const groups: { title: string; description: string; fields: Field[] }[] = [
@@ -115,6 +116,7 @@ export default function WebsiteSettingsPage() {
             <div className="mt-5 space-y-4">{form.faqItems.map((item,i)=><div key={i} className="rounded-xl border bg-slate-50 p-4"><div className="mb-3 flex justify-between"><span className="text-xs font-bold text-slate-500">PERTANYAAN {i+1}</span><button aria-label={`Hapus pertanyaan ${i+1}`} type="button" onClick={()=>setForm({...form,faqItems:form.faqItems.filter((_,n)=>n!==i)})}><Trash2 size={16}/></button></div><input aria-label={`Pertanyaan ${i+1}`} value={item.question} onChange={e=>setForm({...form,faqItems:form.faqItems.map((x,n)=>n===i?{...x,question:e.target.value}:x)})} className="mb-3 w-full rounded-lg border bg-white p-3 text-sm"/><textarea aria-label={`Jawaban ${i+1}`} rows={3} value={item.answer} onChange={e=>setForm({...form,faqItems:form.faqItems.map((x,n)=>n===i?{...x,answer:e.target.value}:x)})} className="w-full rounded-lg border bg-white p-3 text-sm"/>{(errors[`faqItems.${i}.question`] || errors[`faqItems.${i}.answer`]) && <p className="text-sm text-red-600">Pertanyaan dan jawaban wajib diisi, sesuai batas panjang.</p>}</div>)}</div>
             <button type="button" disabled={form.faqItems.length>=20} onClick={()=>setForm({...form,faqItems:[...form.faqItems,{question:"",answer:""}]})} className="mt-5 flex items-center gap-2 text-sm font-semibold text-blue-700"><Plus size={16}/>Tambah pertanyaan</button>
           </section>
+          <ReviewSettings settings={form} onChange={patch=>setForm(previous=>({...previous,...patch}))} errors={errors}/>
         </fieldset>
         <aside className="space-y-5 xl:sticky xl:top-6">
           <div className="overflow-hidden rounded-2xl border bg-white shadow-sm"><p className="border-b p-4 text-xs font-bold uppercase tracking-widest text-slate-500">Pratinjau perubahan</p><div style={{background:form.backgroundColor,color:form.textColor}}>
