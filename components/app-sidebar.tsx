@@ -76,6 +76,7 @@ const data = {
     },
   ],
   navSecondary: [
+    { title: "Pengaturan Website", url: "/dashboard/settings", icon: SettingsIcon },
     {
       title: "Alamat Pengirim",
       url: "/dashboard/settings/shipping",

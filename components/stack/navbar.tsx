@@ -16,8 +16,10 @@ import { Button } from "@/components/ui/button";
 import { forwardRef, useEffect, useState } from "react";
 import { useCart } from "@/components/cart/cart-provider";
 import { usePathname, useRouter } from "next/navigation";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 
 export function Navbar() {
+  const { settings } = useSiteSettings();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(pathname == "/" ? false : true);
   const router = useRouter();
@@ -64,11 +66,10 @@ export function Navbar() {
           : "text-white bg-transparent"
       }`}
     >
-      <img
-        src={`${isScrolled ? "/logoo.png" : "/logo-uncut.png"}`}
-        className="h-8 md:h-[50px] rounded-md"
-        alt="Pulsar Logo"
-      />
+      <Link href="/" className="flex min-w-0 items-center gap-3" aria-label={settings.siteName}>
+        {settings.logoUrl && <img src={settings.logoUrl} className="h-8 max-w-40 object-contain md:h-[50px] rounded-md" alt={settings.siteName} />}
+        <span className="hidden truncate font-bold sm:block">{settings.siteName}</span>
+      </Link>
 
       {/* Mobile Navigation */}
       <Sheet>

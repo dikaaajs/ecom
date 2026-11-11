@@ -169,3 +169,14 @@
 .shipping-origin-map { z-index: 0; }
 .shipping-origin-marker { background: transparent; border: 0; }
 .shipping-origin-pin svg { display: block; width: 46px; height: 52px; filter: drop-shadow(0 3px 5px rgba(26,52,112,.25)); }
+
+/* Storefront customization is scoped away from the admin dashboard. */
+.storefront-theme .storefront-btn-primary {
+  background: var(--storefront-accent);
+  color: var(--storefront-button-text);
+}
+.storefront-theme .storefront-btn-primary:hover { background: var(--storefront-accent); filter: brightness(.92); color: var(--storefront-button-text); }
+.storefront-theme [class*="bg-[#f6f9ff]"],
+.storefront-theme main.bg-slate-50 { background-color: var(--storefront-background); }
+.storefront-theme .text-blue-600 { color: var(--storefront-accent); }
+.storefront-theme .text-slate-900 { color: var(--storefront-text); }
