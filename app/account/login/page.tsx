@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { LockKeyhole, LogIn } from "lucide-react";
 
 export default function BuyerLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,13 +17,13 @@ export default function BuyerLoginPage() {
     try {
       const result = await signIn("customer", { email, password, redirect: false });
       if (!result?.ok || result.error) {
-        setError("Email/password tidak sesuai, akun belum diverifikasi, atau percobaan login sedang dibatasi.");
+        const message="Email/password tidak sesuai, akun belum diverifikasi, atau percobaan login sedang dibatasi.";
+        setError(message); toast.error(message);
         return;
       }
-      router.push("/account/orders");
-      router.refresh();
+      window.location.replace("/account/profile");
     } catch {
-      setError("Login gagal. Coba lagi.");
+      setError("Login gagal. Coba lagi."); toast.error("Login gagal. Periksa koneksi dan coba lagi.");
     } finally { setLoading(false); }
   };
   return (

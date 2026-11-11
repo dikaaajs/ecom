@@ -138,6 +138,7 @@ model Customer {
   name      String
   email     String
   phone     String?
+  avatarPath String?
   addresses CustomerAddress[]
   orders    Order[]
   account   CustomerAccount?
@@ -302,6 +303,7 @@ model CustomerAccount {
 enum AccountTokenPurpose {
   VERIFY_EMAIL
   RESET_PASSWORD
+  CHANGE_EMAIL
 }
 
 model AccountActionToken {
@@ -312,6 +314,8 @@ model AccountActionToken {
   tokenHash String @unique
   expiresAt DateTime
   consumedAt DateTime?
+  targetEmail String?
+  sessionVersion Int?
   createdAt DateTime @default(now())
 
   @@index([accountId, purpose, createdAt])

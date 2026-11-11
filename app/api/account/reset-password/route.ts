@@ -3,23 +3,23 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { resetInput } from "@/lib/account/forms";
 import { tokenHash, permitAttempt, requestIp } from "@/lib/account/security";
+import { hasSameOrigin } from "@/lib/request-origin";
 
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store" };
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin) return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
+  if (!hasSameOrigin(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403, headers });
   if (!request.headers.get("content-type")?.startsWith("application/json")) return NextResponse.json({ error: "JSON required" }, { status: 415, headers });
   let payload: unknown;
   try { const body = await request.text(); if (body.length > 1000) throw Error(); payload = JSON.parse(body); }
   catch { return NextResponse.json({ error: "Permintaan tidak valid." }, { status: 400, headers }); }
   const parsed = resetInput.safeParse(payload);
   if (!parsed.success) return NextResponse.json({ error: "Token atau password tidak valid (minimal 12 karakter)." }, { status: 422, headers });
+  try {
   if (!(await permitAttempt("reset-token-ip", requestIp(request), 15, 15))) {
     return NextResponse.json({ error: "Terlalu banyak percobaan reset. Coba nanti." }, { status: 429, headers });
   }
-  try {
     const token = await prisma.accountActionToken.findUnique({
       where: { tokenHash: tokenHash(parsed.data.token) },
     });
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         data: { passwordHash, sessionVersion: { increment: 1 } },
       });
       await tx.accountActionToken.updateMany({
-        where: { accountId: token.accountId, purpose: "RESET_PASSWORD", consumedAt: null },
+        where: { accountId: token.accountId, purpose: { in:["RESET_PASSWORD","CHANGE_EMAIL"] }, consumedAt: null },
         data: { consumedAt: new Date() },
       });
     });

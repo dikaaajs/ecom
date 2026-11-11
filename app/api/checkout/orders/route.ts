@@ -11,6 +11,7 @@ import { verifyRegionSelection, ShippingRegionError } from "@/lib/shipping/regio
 import { getRajaOngkirRates, ShippingRateError } from "@/lib/shipping/rajaongkir";
 import { accessHash, abandonUnpayableOrder, CheckoutError } from "@/lib/payment/checkout";
 import { createSnapPayment, MidtransError } from "@/lib/payment/midtrans";
+import { lockAddressBook,ensureDefaultAddress } from "@/lib/account/addresses";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -203,19 +204,24 @@ export async function POST(request: Request) {
 
       const customer = await tx.customer.findUnique({ where: { id: account.customerId } });
       if (!customer) throw new CheckoutError("Akun pembeli tidak ditemukan.", 401);
-      await tx.customer.update({ where: { id: customer.id }, data: { name: contact.recipient, phone: contact.phone } });
+      // Shipping contact belongs to the order; it must not overwrite the buyer's profile.
       if (address) {
-        await tx.customerAddress.create({
+        await lockAddressBook(tx,customer.id);
+        const savedAddressLine=[address.addressLine,address.village].join(", ");
+        const existingAddress=await tx.customerAddress.findFirst({where:{customerId:customer.id,recipient:address.recipient,phone:address.phone,
+          addressLine:savedAddressLine,province:address.province,city:address.city,district:address.district,postalCode:address.postalCode},select:{id:true}});
+        if(!existingAddress && await tx.customerAddress.count({where:{customerId:customer.id}})<20)await tx.customerAddress.create({
           data: {
             customerId: customer.id,
             label: "Alamat checkout",
             recipient: address.recipient, phone: address.phone,
-            addressLine: [address.addressLine, address.village].join(", "),
+            addressLine: savedAddressLine,
             province: address.province, city: address.city,
             district: address.district, postalCode: address.postalCode,
-            isDefault: true,
+            isDefault: false,
           },
         });
+        await ensureDefaultAddress(tx,customer.id);
       }
       return tx.order.create({
         data: {

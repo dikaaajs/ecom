@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { AccountMenu } from "@/components/account/account-menu";
 import { useCallback, useEffect, useState } from "react";
-import { PackageCheck, RefreshCw, LogOut } from "lucide-react";
+import { PackageCheck, RefreshCw } from "lucide-react";
 import { CHECKOUT_STORAGE_KEY, type CheckoutSession } from "@/lib/payment/constants";
 
 type Order = {
@@ -64,6 +64,7 @@ export default function MyOrdersPage() {
 
   return <main className="min-h-screen bg-[#f6f9ff] px-4 pb-16 pt-32 font-satoshi">
     <div className="mx-auto max-w-4xl space-y-6">
+      <AccountMenu/>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div><h1 className="text-3xl font-extrabold">Pesanan Saya</h1>
           <p className="mt-2 text-sm text-slate-500">Lihat riwayat transaksi dan file digital dari perangkat mana pun setelah login.</p></div>
@@ -71,8 +72,6 @@ export default function MyOrdersPage() {
           <button type="button" onClick={() => void reload()} disabled={busy}
             className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold disabled:opacity-50">
             <RefreshCw size={16}/> Refresh</button>
-          <button type="button" onClick={() => void signOut({ callbackUrl: "/account/login" })}
-            className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold"><LogOut size={16}/> Keluar</button>
         </div>
       </div>
       {claimSession && !orders.some(order => order.id === claimSession.orderId) && (

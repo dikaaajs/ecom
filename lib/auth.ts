@@ -103,10 +103,13 @@ export const authOptions: NextAuthOptions = {
         try {
           const account = await prisma.customerAccount.findUnique({
             where: { customerId: token.sub! },
-            select: { emailVerifiedAt: true, sessionVersion: true },
+            select: { emailVerifiedAt: true, sessionVersion: true, email:true, customer:{select:{name:true}} },
           });
           if (!account?.emailVerifiedAt || token.sessionVersion !== account.sessionVersion) {
             token.role = "revoked";
+          } else {
+            token.name=account.customer.name;
+            token.email=account.email;
           }
         } catch {
           token.role = "revoked";
@@ -119,6 +122,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!;
         session.user.role = token.role as string;
         session.user.username = token.username as string;
+        session.user.name=token.name;
+        session.user.email=token.email;
       }
       return session;
     },
