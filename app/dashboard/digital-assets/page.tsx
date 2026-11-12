@@ -155,7 +155,7 @@ export default function DigitalAssetsPage() {
             </div>
           )}
       </div>
-      <p className="text-xs leading-5 text-slate-500">Belum ada tombol download pembeli atau URL file publik. Sistem unduhan setelah pembayaran akan ditambahkan ketika autentikasi pelanggan dan webhook payment gateway selesai.</p>
+      <p className="text-xs leading-5 text-slate-500">Pembeli mengakses unduhan melalui akun setelah pembayaran terverifikasi. File tetap privat; periksa produk dan berkas yang dipilih sebelum mengunggah.</p>
     </div>
   );
 }

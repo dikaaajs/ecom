@@ -64,8 +64,8 @@ export function ButtonUploadProduct({
         type: products.type || "PHYSICAL",
         title: products.title || "",
         description: products.description || "",
-        price: products.price || null,
-        stock: products.stock || null,
+        price: products.price ?? null,
+        stock: products.stock ?? null,
         weight: products.weight || null,
         length: products.length || null,
         width: products.width || null,
@@ -74,7 +74,7 @@ export function ButtonUploadProduct({
 
       // 2. Populate Media
       setImageBanner(products.imageUrl || "");
-      setImageProduct(products.images.map((e: any) => e.url) || []);
+      setImageProduct(products.images?.map((e: any) => e.url) || []);
 
       // 3. Populate Selects (Category & Tags)
       setCategoriesValue(products.categoryId || "");
@@ -132,12 +132,13 @@ export function ButtonUploadProduct({
 
   // get data option tags dan category
   useEffect(() => {
-    fetchTags();
-    fetchCategories();
-  }, []);
+    if (!open) return;
+    void Promise.all([fetchTags(), fetchCategories()]).catch(() => toast.error("Gagal memuat kategori atau tag. Tutup formulir lalu coba lagi."));
+  }, [open]);
 
   const fetchTags = async () => {
     const res = await fetch("/api/tags");
+    if (!res.ok) throw new Error("Gagal memuat tag");
     const data = await res.json();
 
     setTagsOptions(
@@ -150,6 +151,7 @@ export function ButtonUploadProduct({
 
   const fetchCategories = async () => {
     const res = await fetch("/api/categories");
+    if (!res.ok) throw new Error("Gagal memuat kategori");
     const data = await res.json();
 
     setCategoriesOptions(
@@ -175,7 +177,7 @@ export function ButtonUploadProduct({
       categoryId: categoriesValue,
       tagIds: tagsValue.map((tag: any) => tag.value),
       images: imageProduct,
-      isPublished: true,
+      isPublished: isEdit ? products.isPublished : true,
     };
     setLoading(true);
 
@@ -192,7 +194,11 @@ export function ButtonUploadProduct({
         body: JSON.stringify(restBody),
       });
 
-      if (!res.ok) throw new Error(isEdit ? "Update failed" : "Upload failed");
+      if (!res.ok) {
+        const result = await res.json().catch(() => ({}));
+        const details = Object.values(result.issues?.fieldErrors || {}).flat().join(" ");
+        throw new Error(details || result.error || (isEdit ? "Gagal memperbarui produk" : "Gagal membuat produk"));
+      }
 
       toast.success(isEdit ? "Product updated!" : "Product uploaded!");
       setOpen(false);
@@ -255,7 +261,7 @@ export function ButtonUploadProduct({
     <Dialog open={open} onOpenChange={setOpen}>
       {/* button */}
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" aria-label={isEdit ? "Edit Product" : "Upload Product"}>
           {isEdit ? <PencilIcon /> : <PlusIcon />}
           <span className="hidden lg:inline">
             {isEdit ? "Edit Product" : "Upload Product"}
@@ -273,7 +279,7 @@ export function ButtonUploadProduct({
         <form onSubmit={handleSubmit}>
           {/* header */}
           <DialogHeader>
-            <DialogTitle>Upload Product</DialogTitle>
+            <DialogTitle>{isEdit ? "Edit Product" : "Upload Product"}</DialogTitle>
             <DialogDescription>
               Fill in the product information and upload.
             </DialogDescription>

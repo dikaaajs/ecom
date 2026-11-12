@@ -40,10 +40,12 @@ export function TagTable<TData, TValue>({
   onUpdated,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState([]);
+  const [deleting, setDeleting] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data: data ?? [],
     columns,
+    getRowId: (row) => (row as { id: string }).id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -56,6 +58,7 @@ export function TagTable<TData, TValue>({
 
   // handle delete
   const handleDelete = async () => {
+    if (deleting) return;
     const selectedIds = table
       .getSelectedRowModel()
       .rows.map((row: any) => row.original.id);
@@ -65,6 +68,8 @@ export function TagTable<TData, TValue>({
       return;
     }
 
+    if (!window.confirm("Hapus " + selectedIds.length + " data yang dipilih?")) return;
+    setDeleting(true);
     try {
       const res = await fetch("/api/tags", {
         method: "DELETE",
@@ -87,6 +92,8 @@ export function TagTable<TData, TValue>({
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Terjadi kesalahan saat menghapus data");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -104,7 +111,7 @@ export function TagTable<TData, TValue>({
         />
         {/* left */}
         <div className="flex gap-[10px]">
-          <Button variant={"outline"} size="sm" onClick={handleDelete}>
+          <Button variant={"outline"} size="sm" onClick={handleDelete} disabled={deleting || !table.getSelectedRowModel().rows.length} aria-label="Hapus data terpilih">
             <Trash className="text-red-600" />
           </Button>
           <ButtonTagUpload onUpdated={onUpdated} />

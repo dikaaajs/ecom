@@ -43,10 +43,12 @@ export function ProductTable<TData, TValue>({
   data,
   onUpdated,
 }: DataTableProps<TData, TValue>) {
+  const [deleting, setDeleting] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data,
     columns,
+    getRowId: (row) => (row as { id: string }).id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -58,6 +60,7 @@ export function ProductTable<TData, TValue>({
   });
 
   const handleDelete = async () => {
+    if (deleting) return;
     const selectedIds = table
       .getSelectedRowModel()
       .rows.map((row: any) => row.original.id);
@@ -67,6 +70,8 @@ export function ProductTable<TData, TValue>({
       return;
     }
 
+    if (!window.confirm("Hapus " + selectedIds.length + " data yang dipilih?")) return;
+    setDeleting(true);
     try {
       const res = await fetch("/api/admin/products", {
         method: "DELETE",
@@ -90,6 +95,8 @@ export function ProductTable<TData, TValue>({
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Terjadi kesalahan saat menghapus data");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -107,7 +114,7 @@ export function ProductTable<TData, TValue>({
         />
         <div className="flex gap-[10px]">
           {/* button delete product */}
-          <Button variant={"outline"} size="sm" onClick={handleDelete}>
+          <Button variant={"outline"} size="sm" onClick={handleDelete} disabled={deleting || !table.getSelectedRowModel().rows.length} aria-label="Hapus data terpilih">
             <Trash className="text-red-600" />
           </Button>
 
