@@ -10,11 +10,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 
 import {
   Table,
@@ -101,9 +96,9 @@ export function ProductTable<TData, TValue>({
   };
 
   return (
-    <div className="space-y-2 font-satoshi">
+    <div className="min-w-0 max-w-full space-y-2 font-satoshi">
       {/* header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Input
           placeholder="Filter titles..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -124,7 +119,7 @@ export function ProductTable<TData, TValue>({
       </div>
 
       {/* body */}
-      <div className="overflow-hidden rounded-md border">
+      <div className="min-w-0 max-w-full overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-slate-50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -176,7 +171,7 @@ export function ProductTable<TData, TValue>({
       </div>
 
       {/* pagination */}
-      <div className="mt-[14px] w-full">
+      <div className="mt-[14px] w-full overflow-x-auto">
         <DataTablePagination table={table} />
       </div>
     </div>

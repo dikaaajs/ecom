@@ -69,20 +69,16 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
         return (
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Link className="font-medium hover:underline" href={`/dashboard/product/${row.original.id}`}>
+              <Link className="block w-64 max-w-full whitespace-normal font-medium hover:underline [overflow-wrap:anywhere]" href={`/dashboard/product/${row.original.id}`}>
                 {row.original.title}
               </Link>
             </HoverCardTrigger>
-            <HoverCardContent className="w-[300px]">
-              <CardProduct row={row} />
+            <HoverCardContent align="start" collisionPadding={16} sideOffset={8} className="w-80 max-w-[calc(100vw-2rem)] max-h-[var(--radix-hover-card-content-available-height)] overflow-y-auto whitespace-normal">
+              <CardProduct product={row.original} />
             </HoverCardContent>
           </HoverCard>
         );
       },
-    },
-    {
-      accessorFn: (row) => row.description,
-      header: "Description",
     },
     {
       accessorKey: "price",

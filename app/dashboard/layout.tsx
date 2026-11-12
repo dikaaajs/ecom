@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider className="font-satoshi">
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <SiteHeader />
         {children}
       </SidebarInset>

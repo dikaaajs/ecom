@@ -40,3 +40,17 @@ Tidak ada perubahan skema database atau pengaturan pembayaran untuk perubahan in
   pada aliran halaman; jangan mengandalkan status HTTP saja dalam smoke test.
 - Semua fixture katalog dan admin sementara dibersihkan setelah pengujian.
   Pesanan, pembayaran dan file digital pembeli tidak diubah oleh uji ini.
+
+## Kartu pratinjau produk
+
+Kolom deskripsi dihapus dari tabel; ringkasannya tetap tersedia pada kartu produk.
+Kartu memakai portal agar tidak terpotong oleh area gulir tabel, batas lebar viewport,
+batas tinggi area yang tersedia, dan pembungkusan teks tersendiri. Judul, harga,
+deskripsi dan tag tidak mewarisi whitespace-nowrap dari sel tabel.
+Gambar memakai object-contain; galeri berada di alur normal tanpa posisi negatif.
+Area konten dashboard memiliki min-width: 0 sehingga gulir horizontal tetap di tabel.
+Pemeriksaan tampilan: kartu selebar 320 px tetap berada di dalam viewport desktop
+1280 px dan ponsel 390 px, tidak ada isi horizontal yang keluar dari kartu,
+kolom Description tidak dirender, dan tabel produk memiliki gulir sendiri.
+Pratinjau juga dapat dibuka melalui fokus keyboard. Akun admin uji dihapus;
+produk yang tersimpan tidak diubah.
