@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { PlusIcon, Trash } from "lucide-react";
 import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
 import ButtonCategoryUpload from "@/components/buttons/categories/button-category-upload";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -64,7 +64,7 @@ export function CategoryTable<TData, TValue>({
       .rows.map((row: any) => row.original.id);
 
     if (selectedIds.length === 0) {
-      toast.error("Tidak ada data yang dipilih");
+      toast.warning("Tidak ada data yang dipilih");
       return;
     }
 

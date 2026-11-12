@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -21,7 +23,7 @@ export default function AccountOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useToastFeedback("error", "buyer-order-error");
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -57,6 +59,7 @@ export default function AccountOrderDetailPage() {
       const anchor = document.createElement("a");
       anchor.href = url.href; anchor.target = "_blank"; anchor.rel = "noopener noreferrer";
       document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      toast.info("Tautan unduhan dibuka. Periksa tab baru atau daftar unduhan browser.");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "File tidak bisa diunduh.");
     } finally { setDownloading(null); }
@@ -71,7 +74,6 @@ export default function AccountOrderDetailPage() {
         <div><h1 className="text-2xl font-extrabold">Detail Pesanan</h1><p className="mt-1 text-sm text-slate-500">{order?.orderNumber || id}</p></div>
         <button type="button" disabled={loading} onClick={() => void load()} className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm disabled:opacity-50"><RefreshCw size={16}/> Refresh</button>
       </div>
-      {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
       <div className="rounded-2xl border bg-white p-6 shadow-sm">
         {loading ? <p className="text-sm text-slate-500">Memuat detail pesanan...</p> :
           !order ? <p className="text-sm text-slate-500">Pesanan tidak ditemukan atau tidak termasuk akun ini.</p> :

@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/lib/notify";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -109,6 +110,7 @@ export default function CheckoutPage() {
       recipient: savedAddress.recipient, email: savedAddress.email, phone: savedAddress.phone,
     } : digitalContact;
 
+    toast.loading("Menyiapkan pesanan dan halaman pembayaran?", { id: "checkout-submit" });
     setPaymentError("");
     setSubmitting(true);
     try {
@@ -143,9 +145,10 @@ export default function CheckoutPage() {
       };
       sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(session));
       // Payment status comes from the verified Midtrans webhook, NEVER from the redirect.
+      toast.success("Pesanan dibuat. Membuka halaman pembayaran.", { id: "checkout-submit" });
       window.location.assign(session.redirectUrl);
     } catch (caught) {
-      setPaymentError(caught instanceof Error ? caught.message : "Gagal memulai pembayaran.");
+      toast.error(caught instanceof Error ? caught.message : "Gagal memulai pembayaran.", { id: "checkout-submit" });
     } finally {
       setSubmitting(false);
     }

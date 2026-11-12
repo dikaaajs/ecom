@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -7,8 +9,8 @@ export default function VerifyEmailPage() {
   const started = useRef(false);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("Periksa inbox dan folder spam untuk link verifikasi.");
-  const [error, setError] = useState("");
+  const [notice, setNotice] = useToastFeedback("success", "verify-success");
+  const [error, setError] = useToastFeedback("error", "verify-error");
 
   useEffect(() => {
     if (started.current) return;
@@ -41,7 +43,7 @@ export default function VerifyEmailPage() {
         body: JSON.stringify({ email }),
       });
       if (!response.ok) throw Error("Permintaan gagal.");
-      setNotice("Jika email terdaftar dan belum terverifikasi, tautan baru akan dikirim.");
+      toast.info("Jika email terdaftar dan belum terverifikasi, tautan baru akan dikirim.", { id: "verify-resend" });
     } catch { setError("Gagal mengirim permintaan. Coba lagi."); }
     finally { setBusy(false); }
   };
@@ -49,9 +51,8 @@ export default function VerifyEmailPage() {
   return <main className="min-h-screen bg-[#f6f9ff] px-4 pb-12 pt-32 font-satoshi">
     <div className="mx-auto max-w-md rounded-2xl border bg-white p-7 shadow-sm">
       <h1 className="text-2xl font-extrabold">Verifikasi Email</h1>
+      <p className="mt-3 text-sm text-slate-500">Periksa inbox dan folder spam untuk tautan verifikasi.</p>
       {busy && <p role="status" className="mt-4 text-sm text-slate-600">Memproses permintaan...</p>}
-      {!!notice && <p role="status" className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">{notice}</p>}
-      {!!error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
       <form onSubmit={resend} className="mt-5 space-y-3">
         <label className="block text-sm font-semibold">Kirim ulang link verifikasi
           <input required type="email" value={email} onChange={e=>setEmail(e.target.value)}

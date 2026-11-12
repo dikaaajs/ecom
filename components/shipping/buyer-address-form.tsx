@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/lib/notify";
 
 import dynamic from "next/dynamic";
 import { useEffect, useState, type FormEvent } from "react";
@@ -93,7 +94,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
 
   const useDeviceLocation = () => {
     if (!navigator.geolocation) {
-      setMessage("Browser tidak mendukung geolokasi. Kamu bisa klik titik di peta.");
+      toast.warning("Browser tidak mendukung geolokasi. Kamu bisa klik titik di peta.");
       return;
     }
     setLocating(true);
@@ -101,14 +102,14 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
       position => {
         const { latitude, longitude } = position.coords;
         if (latitude < -11.5 || latitude > 6.5 || longitude < 94 || longitude > 142) {
-          setMessage("Lokasi perangkat di luar area Indonesia. Pilih pin manual.");
+          toast.warning("Lokasi perangkat di luar area Indonesia. Pilih pin manual.");
         } else {
           setPin({ latitude: Number(latitude.toFixed(6)), longitude: Number(longitude.toFixed(6)) });
         }
         setLocating(false);
       },
       () => {
-        setMessage("Izin lokasi tidak diberikan atau lokasi tidak tersedia. Pilih pin manual jika diinginkan.");
+        toast.warning("Izin lokasi tidak diberikan atau lokasi tidak tersedia. Pilih pin manual jika diinginkan.");
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
@@ -127,7 +128,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
       }
       setErrors(fieldErrors);
       setSaved(false);
-      setMessage("Periksa kembali kolom yang diberi tanda merah.");
+      toast.warning("Periksa kembali kolom yang diberi tanda merah.");
       return;
     }
     try {
@@ -135,10 +136,10 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
       setDraft(parsed.data);
       setSaved(true);
       onAddressSaved(parsed.data);
-      setMessage("Alamat disimpan sementara di tab browser ini. Belum ada pesanan yang dibuat.");
+      toast.success("Alamat disimpan sementara di tab browser ini. Belum ada pesanan yang dibuat.");
     } catch {
       setSaved(false);
-      setMessage("Browser tidak mengizinkan penyimpanan sementara. Periksa pengaturan browser.");
+      toast.error("Browser tidak mengizinkan penyimpanan sementara. Periksa pengaturan browser.");
     }
   };
 
@@ -149,7 +150,7 @@ export function BuyerAddressForm({ items, originConfigured, onRateChange, onAddr
     onAddressSaved(null);
     onRateChange(null);
     setErrors({});
-    setMessage("Alamat sementara telah dikosongkan.");
+    toast.info("Alamat sementara telah dikosongkan.");
   };
 
   if (!hydrated) return <div className="rounded-2xl border border-blue-100 bg-white p-6 text-sm text-slate-500">Memuat form alamat...</div>;

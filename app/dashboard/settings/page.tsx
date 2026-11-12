@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,12 +40,12 @@ export default function WebsiteSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useToastFeedback("error", "website-settings-error");
+  const [notice, setNotice] = useToastFeedback("success", "website-settings-success");
   const [errors, setErrors] = useState<Record<string,string>>({});
   const dirty = saved !== "" && JSON.stringify(form) !== saved;
   const uploadImage = async (key: keyof SiteSettings, file: File) => {
-    if(file.size > 2 * 1024 * 1024) { setError("Ukuran gambar maksimal 2 MB."); return; }
+    if(file.size > 2 * 1024 * 1024) { toast.warning("Ukuran gambar maksimal 2 MB."); return; }
     setUploading(true); setError(""); setNotice("");
     try {
       const payload = new FormData(); payload.append("file",file);
@@ -51,7 +53,7 @@ export default function WebsiteSettingsPage() {
       const body = await response.json();
       if(!response.ok) throw Error(body.error || "Gagal mengunggah gambar.");
       setForm(previous=>({...previous,[key]:body.url}));
-      setNotice("Gambar diunggah. Klik Simpan perubahan untuk menggunakannya di toko.");
+      toast.info("Gambar diunggah. Klik Simpan perubahan untuk menggunakannya di toko.");
     } catch(err) { setError(err instanceof Error ? err.message : "Unggah gagal."); }
     finally { setUploading(false); }
   };
@@ -77,7 +79,7 @@ export default function WebsiteSettingsPage() {
     if (!parsed.success) {
       const issues: Record<string,string> = {};
       for(const issue of parsed.error.issues) issues[issue.path.join(".")] = issue.message;
-      setErrors(issues); setError("Ada isian yang belum valid. Periksa kolom bertanda merah."); return;
+      setErrors(issues); toast.warning("Ada isian yang belum valid. Periksa kolom bertanda merah."); return;
     }
     setBusy(true);
     try {
@@ -103,8 +105,7 @@ export default function WebsiteSettingsPage() {
     <div className="mx-auto max-w-7xl">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4"><div><p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-600"><Palette size={16}/> Identitas & tampilan</p><h1 className="text-3xl font-bold tracking-tight">Pengaturan Website</h1><p className="mt-2 text-sm text-slate-500">Jadikan toko ini milikmu. Semua perubahan tersimpan setelah menekan Simpan.</p></div><Link href="/" target="_blank" className="flex items-center gap-2 rounded-xl border bg-white px-4 py-3 text-sm font-semibold">Lihat toko <ExternalLink size={16}/></Link></div>
       {loading && <p role="status">Memuat pengaturan…</p>}
-      {error && <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{error}{!saved && <button className="ml-3 underline" onClick={()=>void load()}>Coba lagi</button>}</div>}
-      {notice && <p role="status" className="mb-5 rounded-xl bg-emerald-50 p-4 text-emerald-800">{notice}</p>}
+      {!loading && !saved && <div role="status" className="mb-5 rounded-xl border bg-white p-4 text-sm text-slate-600">Pengaturan belum dapat ditampilkan.<button type="button" onClick={()=>void load()} className="ml-3 font-semibold underline">Coba lagi</button></div>}
       {!loading && saved && <form onSubmit={submit} className="grid items-start gap-7 xl:grid-cols-[minmax(0,1fr)_380px]">
         <fieldset disabled={busy || uploading} className="min-w-0 space-y-6">
           {groups.map(group=><section key={group.title} className="rounded-2xl border bg-white p-6 shadow-sm"><h2 className="text-lg font-bold">{group.title}</h2><p className="mb-6 mt-1 text-sm text-slate-500">{group.description}</p><div className="grid gap-5 sm:grid-cols-2">{group.fields.map(field)}</div>

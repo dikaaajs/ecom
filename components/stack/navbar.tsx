@@ -17,7 +17,7 @@ export function Navbar() {
   const [scrolled,setScrolled]=useState(false);
   const [open,setOpen]=useState(false);
   useEffect(()=>{const update=()=>setScrolled(window.scrollY>24);update();window.addEventListener("scroll",update,{passive:true});return()=>window.removeEventListener("scroll",update);},[]);
-  if(pathname.startsWith("/dashboard"))return null;
+  if(pathname.startsWith("/dashboard") || pathname.startsWith("/auth/"))return null;
   const solid=pathname!=="/" || scrolled;
   const {href:accountHref,label:accountLabel}=storefrontAccountLink(session?.user?.role);
   const links=[{label:"Koleksi",href:"/#explore"},{label:"Cara belanja",href:"/#how-it-works"},...(s.showReviews?[{label:"Ulasan",href:"/#reviews"}]:[])];

@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 import Link from "next/link";
@@ -17,8 +19,8 @@ const MAX_SIZE = 4 * 1024 * 1024;
 export default function DigitalAssetsPage() {
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useToastFeedback("error", "digital-assets-error");
+  const [notice, setNotice] = useToastFeedback("success", "digital-assets-success");
   const [files, setFiles] = useState<Record<string, File | null>>({});
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
@@ -49,7 +51,7 @@ export default function DigitalAssetsPage() {
     const file = event.target.files?.[0] || null;
     if (file && file.size > MAX_SIZE) {
       setFiles(prev => ({ ...prev, [productId]: null }));
-      setError("File melebihi 4 MB. Gunakan file yang lebih kecil terlebih dahulu.");
+      toast.warning("File melebihi 4 MB. Gunakan file yang lebih kecil terlebih dahulu.");
       event.target.value = "";
       return;
     }
@@ -106,12 +108,10 @@ export default function DigitalAssetsPage() {
         <div><strong>File tidak dipublikasikan.</strong><p className="mt-1 leading-6">Gunakan bucket Supabase Storage private bernama <code>digital-products</code> atau atur <code>SUPABASE_DIGITAL_BUCKET</code> pada environment server. Maksimum 4 MB per file untuk unggahan melalui Vercel Function. File besar membutuhkan metode upload langsung ke storage pada pengembangan berikutnya.</p></div>
       </div>
 
-      {!!error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><AlertTriangle className="mt-0.5 shrink-0" size={18}/>{error}</div>}
-      {!!notice && <div role="status" className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 shrink-0" size={18}/>{notice}</div>}
 
       <div className="overflow-hidden rounded-xl border bg-white">
         {loading ? <div className="p-10 text-center text-sm text-slate-500">Memuat produk digital...</div> :
-          products.length === 0 ? (
+          error && products.length === 0 ? <p role="status" className="p-10 text-center text-sm text-slate-500">Daftar file belum dapat dimuat. Gunakan Muat ulang untuk mencoba lagi.</p> : products.length === 0 ? (
             <div className="p-12 text-center">
               <FileArchive className="mx-auto mb-3 text-slate-400" size={35}/>
               <h2 className="font-bold text-slate-900">Belum ada produk digital</h2>

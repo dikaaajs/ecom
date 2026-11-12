@@ -51,7 +51,7 @@ import {
   TrendingUpIcon,
 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { z } from "zod";
 
 import { useIsMobile } from "@/hooks/use-mobile";

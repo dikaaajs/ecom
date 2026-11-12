@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -38,8 +40,8 @@ export default function ShippingOriginSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useToastFeedback("error", "shipping-origin-error");
+  const [notice, setNotice] = useToastFeedback("success", "shipping-origin-success");
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [issues, setIssues] = useState<Record<string, string[]>>({});
 
@@ -55,7 +57,7 @@ export default function ShippingOriginSettingsPage() {
         setFieldsValue(rest);
         setCoords({ latitude, longitude });
         setUpdatedAt(requiresRegionSelection ? null : updatedAt);
-        if (requiresRegionSelection) setNotice("Alamat lama ditemukan. Pilih ulang provinsi, kota, dan kecamatan agar terhubung ke RajaOngkir.");
+        if (requiresRegionSelection) toast.warning("Alamat lama ditemukan. Pilih ulang provinsi, kota, dan kecamatan agar terhubung ke RajaOngkir.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat data alamat");
@@ -87,7 +89,7 @@ export default function ShippingOriginSettingsPage() {
   const useCurrentLocation = () => {
     setError("");
     if (!navigator.geolocation) {
-      setError("Browser tidak mendukung lokasi perangkat. Pilih titik langsung di peta.");
+      toast.warning("Browser tidak mendukung lokasi perangkat. Pilih titik langsung di peta.");
       return;
     }
     setLocating(true);
@@ -95,7 +97,7 @@ export default function ShippingOriginSettingsPage() {
       position => {
         const { latitude, longitude } = position.coords;
         if (latitude < -11.5 || latitude > 6.5 || longitude < 94 || longitude > 142) {
-          setError("Lokasi perangkat berada di luar Indonesia. Pilih titik pengiriman secara manual.");
+          toast.warning("Lokasi perangkat berada di luar Indonesia. Pilih titik pengiriman secara manual.");
         } else {
           changeCoords({
             latitude: Number(latitude.toFixed(6)),
@@ -105,7 +107,7 @@ export default function ShippingOriginSettingsPage() {
         setLocating(false);
       },
       () => {
-        setError("Lokasi tidak tersedia atau izin ditolak. Kamu tetap bisa memilih titik di peta.");
+        toast.warning("Lokasi tidak tersedia atau izin ditolak. Kamu tetap bisa memilih titik di peta.");
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
@@ -118,14 +120,14 @@ export default function ShippingOriginSettingsPage() {
     setNotice("");
     setIssues({});
     if (!coords) {
-      setError("Pilih titik lokasi pengiriman di peta sebelum menyimpan.");
+      toast.warning("Pilih titik lokasi pengiriman di peta sebelum menyimpan.");
       return;
     }
     const payload = { ...fieldsValue, ...coords };
     const validated = shippingOriginWithRegionsSchema.safeParse(payload);
     if (!validated.success) {
       setIssues(validated.error.flatten().fieldErrors);
-      setError("Beberapa kolom belum benar. Periksa isian yang ditandai.");
+      toast.warning("Beberapa kolom belum benar. Periksa isian yang ditandai.");
       return;
     }
     setSaving(true);
@@ -172,8 +174,6 @@ export default function ShippingOriginSettingsPage() {
           </span>
         </div>
 
-        {error && <div role="alert" className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>}
-        {notice && <div role="status" className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 size={17}/>{notice}</div>}
 
         <form onSubmit={save} className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">

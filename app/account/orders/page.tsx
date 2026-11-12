@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { AccountMenu } from "@/components/account/account-menu";
@@ -20,8 +22,8 @@ export default function MyOrdersPage() {
   const [busy, setBusy] = useState(true);
   const [claimBusy, setClaimBusy] = useState(false);
   const [claimSession, setClaimSession] = useState<CheckoutSession | null>(null);
-  const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
+  const [error, setError] = useToastFeedback("error", "buyer-orders-error");
+  const [info, setInfo] = useToastFeedback("success", "buyer-orders-success");
 
   const reload = useCallback(async () => {
     setBusy(true); setError("");
@@ -82,11 +84,9 @@ export default function MyOrdersPage() {
             className="mt-3 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{claimBusy ? "Menautkan..." : "Tautkan pesanan lama"}</button>
         </div>
       )}
-      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
-      {info && <p role="status" className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">{info}</p>}
       <div className="overflow-hidden rounded-xl border bg-white">
         {busy ? <p className="p-8 text-sm text-slate-500">Memuat pesanan...</p> :
-          orders.length === 0 ? <div className="p-10 text-center">
+          error && orders.length === 0 ? <p role="status" className="p-8 text-sm text-slate-500">Daftar pesanan belum dapat dimuat. Gunakan Refresh untuk mencoba lagi.</p> : orders.length === 0 ? <div className="p-10 text-center">
             <PackageCheck size={34} className="mx-auto text-slate-400"/>
             <p className="mt-3 font-semibold">Belum ada pesanan untuk akun ini.</p>
             <Link href="/product" className="mt-3 inline-block text-sm font-bold text-blue-600 underline">Mulai belanja</Link>

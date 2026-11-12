@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
@@ -8,8 +10,8 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
+  const [notice, setNotice] = useToastFeedback("success", "reset-password-success");
+  const [error, setError] = useToastFeedback("error", "reset-password-error");
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get("token") || "";
     if (value) {
@@ -20,7 +22,7 @@ export default function ResetPasswordPage() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice("");
-    if (password !== confirm) { setError("Konfirmasi password tidak cocok."); return; }
+    if (password !== confirm) { toast.warning("Konfirmasi password tidak cocok."); return; }
     setBusy(true);
     try {
       const response = await fetch("/api/account/reset-password", {
@@ -49,8 +51,6 @@ export default function ResetPasswordPage() {
         </label>
         <button disabled={busy} type="submit" className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-50">{busy ? "Memproses..." : "Simpan password baru"}</button>
       </form> : <p className="mt-4 text-sm text-slate-600">Gunakan tautan dari email reset password. Jika link sudah dipakai atau tidak tersedia, minta link baru.</p>}
-      {!!error && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
-      {!!notice && <p role="status" className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
       <div className="mt-5 flex gap-4 text-sm font-semibold text-blue-700">
         <Link href="/account/forgot-password" className="underline">Minta link baru</Link>
         <Link href="/account/login" className="underline">Masuk</Link>

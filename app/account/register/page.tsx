@@ -1,20 +1,24 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { UserRoundPlus } from "lucide-react";
 
 export default function BuyerRegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useToastFeedback("error", "register-error");
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password !== confirm) { setError("Konfirmasi password tidak cocok."); return; }
+    if (password !== confirm) { toast.warning("Konfirmasi password tidak cocok."); return; }
     setBusy(true);
     try {
       const res = await fetch("/api/account/register", {
@@ -24,7 +28,8 @@ export default function BuyerRegisterPage() {
       });
       const json: { error?: string } = await res.json();
       if (!res.ok) throw new Error(json.error || "Pendaftaran gagal.");
-      window.location.assign("/account/verify?email=" + encodeURIComponent(email.trim().toLowerCase()));
+      toast.success("Akun dibuat. Periksa email untuk melanjutkan verifikasi.");
+      router.push("/account/verify?email=" + encodeURIComponent(email.trim().toLowerCase()));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Pendaftaran gagal.");
     } finally { setBusy(false); }
@@ -51,7 +56,6 @@ export default function BuyerRegisterPage() {
           <input required type="password" minLength={12} maxLength={128} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)}
             className="mt-1 block w-full rounded-xl border p-3 focus:border-blue-500 focus:outline-none"/>
         </label>
-        {error && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
         <button type="submit" disabled={busy} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-50">
           {busy ? "Membuat akun..." : "Buat Akun"}
         </button>

@@ -13,7 +13,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
 import CardProduct from "@/components/cards/product";
 import Link from "next/link";
@@ -164,7 +164,7 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
 
             setIsPublished(value);
             onUpdated();
-            toast.success("berhasil mengubah data");
+            toast.success("Status publikasi produk berhasil diperbarui.");
           } catch (error) {
             console.error("Error publishing product:", error);
             toast.error("Gagal mengubah publikasi produk. Silakan coba lagi.");

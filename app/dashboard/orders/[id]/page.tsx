@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -64,8 +66,8 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [error, setError] = useToastFeedback("error", "shipment-error");
+  const [notice, setNotice] = useToastFeedback("success", "shipment-success");
   const [courier, setCourier] = useState("");
   const [service, setService] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -149,8 +151,6 @@ export default function AdminOrderDetailPage() {
           className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold disabled:opacity-50"><RefreshCw size={16}/> Muat ulang</button>
       </div>
 
-      {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"><AlertTriangle size={18}/>{error}</div>}
-      {notice && <div role="status" className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><CheckCircle2 size={18}/>{notice}</div>}
 
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">

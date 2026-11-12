@@ -18,7 +18,7 @@ import GeneralForm from "@/components/form/products/general-form";
 import DimentionFrom from "@/components/form/products/dimention-form";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import MediaForm from "@/components/form/products/media-form";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { FormDataProductType } from "@/types/product/form-data";
 import { Option } from "@/types/option";
 
@@ -200,7 +200,7 @@ export function ButtonUploadProduct({
         throw new Error(details || result.error || (isEdit ? "Gagal memperbarui produk" : "Gagal membuat produk"));
       }
 
-      toast.success(isEdit ? "Product updated!" : "Product uploaded!");
+      toast.success(isEdit ? "Produk berhasil diperbarui." : "Produk berhasil ditambahkan.");
       setOpen(false);
       onUpdated();
     } catch (err: any) {

@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/lib/notify";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -90,8 +91,9 @@ export default function OrderConfirmationPage() {
       const result: { error?: string } = await response.json();
       if (!response.ok) throw new Error(result.error || "Tidak dapat memeriksa status Midtrans.");
       await load(session);
+      toast.info("Pemeriksaan status pembayaran selesai. Lihat status terbaru pada pesanan.");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Gagal memuat status.");
+      toast.error(caught instanceof Error ? caught.message : "Gagal memuat status.");
       setLoading(false);
     }
   };
@@ -131,8 +133,9 @@ export default function OrderConfirmationPage() {
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
+      toast.info("Tautan unduhan dibuka. Periksa tab baru atau daftar unduhan browser.");
     } catch (caught) {
-      setDownloadError(caught instanceof Error ? caught.message : "File tidak dapat diunduh.");
+      toast.error(caught instanceof Error ? caught.message : "File tidak dapat diunduh.");
     } finally {
       setDownloadBusy(null);
     }

@@ -1,4 +1,6 @@
 "use client";
+import { toast } from "@/lib/notify";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
@@ -6,7 +8,7 @@ import { useState, type FormEvent } from "react";
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useToastFeedback("success", "forgot-password-success");
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setBusy(true); setNotice("");
     try {
@@ -15,8 +17,8 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
       if (!response.ok) throw Error();
-      setNotice("Jika email terdaftar, instruksi reset password akan dikirim.");
-    } catch { setNotice("Permintaan gagal. Coba beberapa saat lagi."); }
+      toast.info("Jika email terdaftar, instruksi reset password akan dikirim.", { id: "forgot-password-result" });
+    } catch { toast.error("Permintaan gagal. Coba beberapa saat lagi.", { id: "forgot-password-result" }); }
     finally { setBusy(false); }
   };
   return <main className="min-h-screen bg-[#f6f9ff] px-4 pb-12 pt-32 font-satoshi">
@@ -30,7 +32,6 @@ export default function ForgotPasswordPage() {
         </label>
         <button disabled={busy} type="submit" className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-50">{busy ? "Mengirim..." : "Kirim tautan reset"}</button>
       </form>
-      {!!notice && <p role="status" className="mt-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">{notice}</p>}
       <Link href="/account/login" className="mt-5 inline-block text-sm font-bold text-blue-700 underline">Kembali ke login</Link>
     </div>
   </main>;

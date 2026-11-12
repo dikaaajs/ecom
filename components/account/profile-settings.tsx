@@ -1,8 +1,9 @@
 "use client";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 import { useCallback,useEffect,useState,type FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { Camera,Save,Mail,MapPin,Plus,Pencil,Trash2,ShieldCheck,UserRound } from "lucide-react";
 import { AccountMenu } from "./account-menu";
 import { profileInput,addressInput,emailChangeInput,type ProfileResponse,type SavedAddress } from "@/lib/account/profile";
@@ -23,7 +24,7 @@ export function ProfileSettings() {
   const {update:updateSession}=useSession();
   const [data,setData]=useState<ProfileResponse|null>(null);
   const [personal,setPersonal]=useState({name:"",phone:""});
-  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState("");
+  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useToastFeedback("error", "profile-load-error");
   const [address,setAddress]=useState(emptyAddress),[editing,setEditing]=useState<string|null>(null),[showAddress,setShowAddress]=useState(false);
   const [email,setEmail]=useState(""),[password,setPassword]=useState("");
   const load=useCallback(async(reset=true)=>{
@@ -34,16 +35,16 @@ export function ProfileSettings() {
   const change=async(action:()=>Promise<unknown>,message:string,reset=false)=>{
     if(busy)return;setBusy(true);setError("");
     try{await action();await load(reset);toast.success(message);}
-    catch(cause){const message=cause instanceof Error&&!(cause instanceof TypeError)?cause.message:"Koneksi bermasalah. Coba lagi.";setError(message);toast.error(message);}
+    catch(cause){const message=cause instanceof Error&&!(cause instanceof TypeError)?cause.message:"Koneksi bermasalah. Coba lagi.";toast.error(message, { id: "profile-action-error" });}
     finally{setBusy(false);}
   };
   const saveProfile=(event:FormEvent)=>{
     event.preventDefault();const parsed=profileInput.safeParse(personal);
-    if(!parsed.success){toast.error("Periksa nama dan nomor telepon.");return;}
+    if(!parsed.success){toast.warning("Periksa nama dan nomor telepon.");return;}
     void change(async()=>{await requestAccount("/api/account/profile",json("PATCH",parsed.data));await updateSession();},"Profil berhasil disimpan.",true);
   };
   const upload=(file:File)=>{
-    if(file.size>1048576){toast.error("Ukuran foto maksimal 1 MB.");return;}
+    if(file.size>1048576){toast.warning("Ukuran foto maksimal 1 MB.");return;}
     void change(async()=>{const form=new FormData();form.append("file",file);await requestAccount("/api/account/avatar",{method:"POST",body:form});},"Foto profil diperbarui.");
   };
   const editAddress=(item?:SavedAddress)=>{
@@ -51,15 +52,15 @@ export function ProfileSettings() {
   };
   const saveAddress=(event:FormEvent)=>{
     event.preventDefault();const parsed=addressInput.safeParse(address);
-    if(!parsed.success){toast.error("Lengkapi alamat, penerima, telepon, dan kode pos 5 angka.");return;}
+    if(!parsed.success){toast.warning("Lengkapi alamat, penerima, telepon, dan kode pos 5 angka.");return;}
     void change(async()=>{await requestAccount(editing?`/api/account/addresses/${encodeURIComponent(editing)}`:"/api/account/addresses",json(editing?"PATCH":"POST",parsed.data));setShowAddress(false);},"Alamat berhasil disimpan.");
   };
   const requestEmail=async(event:FormEvent)=>{
     event.preventDefault();const parsed=emailChangeInput.safeParse({email,password});
-    if(!parsed.success){toast.error("Email baru dan password saat ini wajib diisi.");return;}
+    if(!parsed.success){toast.warning("Email baru dan password saat ini wajib diisi.");return;}
     if(busy)return;setBusy(true);setError("");
     try{const body=await requestAccount("/api/account/change-email",json("POST",parsed.data));setPassword("");setEmail("");toast.success(body.message,{duration:9000});}
-    catch(cause){const message=cause instanceof Error&&!(cause instanceof TypeError)?cause.message:"Permintaan gagal. Coba lagi.";setError(message);toast.error(message);}
+    catch(cause){const message=cause instanceof Error&&!(cause instanceof TypeError)?cause.message:"Permintaan gagal. Coba lagi.";toast.error(message, { id: "profile-action-error" });}
     finally{setBusy(false);}
   };
   const retry=()=>{setLoading(true);setError("");void load().catch(()=>setError("Profil belum dapat dimuat.")).finally(()=>setLoading(false));};

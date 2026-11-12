@@ -6,7 +6,8 @@ const SettingsContext = createContext({ settings: defaultSiteSettings, updateSet
 export const useSiteSettings = () => useContext(SettingsContext);
 export function SiteSettingsProvider({ initial, children }: { initial: SiteSettings; children: ReactNode }) {
   const [settings, updateSettings] = useState(initial);
-  const dashboard = usePathname().startsWith("/dashboard");
+  const pathname = usePathname();
+  const dashboard = pathname.startsWith("/dashboard") || pathname.startsWith("/auth/");
   const theme = {
     "--storefront-accent": settings.primaryColor, "--storefront-button-text": settings.buttonTextColor,
     "--storefront-background": settings.backgroundColor, "--storefront-text": settings.textColor,

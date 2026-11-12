@@ -1,4 +1,5 @@
 ﻿"use client";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +16,7 @@ export default function ProductsPage() {
   const [tags, setTags] = useState<TagRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useToastFeedback("error", "product-load-error");
   const load = useCallback(async () => {
     setRefreshing(true);
     setError("");

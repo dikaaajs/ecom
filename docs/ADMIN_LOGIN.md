@@ -1,14 +1,14 @@
 # Admin login behavior
 
-Both `/auth/signin` and `/auth/login` use the same admin-login hook.
+`/auth/signin` is the admin portal. `/auth/login` redirects to it.
 Only a successful NextAuth Credentials response navigates to `/dashboard`.
 Navigation replaces the current document so the dashboard's SessionProvider
 reads the new session cookie instead of retaining an unauthenticated client
 state. It does not depend on a second `getSession()` returning a truthy value.
 The destination is fixed and does not trust an arbitrary response URL.
 
-Invalid/missing responses and connection errors show a Sonner error toast plus
-an inline accessible message. Submission stays disabled during authentication
+Invalid/missing responses and connection errors show one error toast with a stable ID.
+The form does not render a second error banner. Submission stays disabled during authentication
 and navigation, and is re-enabled after failure. The dashboard renders its
 content only after an authenticated admin session is available.
 

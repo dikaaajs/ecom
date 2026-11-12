@@ -1,4 +1,5 @@
 ﻿"use client";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -19,7 +20,7 @@ export default function Page() {
   const [days,setDays] = useState(30);
   const [data,setData] = useState<DashboardData | null>(null);
   const [loading,setLoading] = useState(true);
-  const [error,setError] = useState("");
+  const [error,setError] = useToastFeedback("error", "dashboard-load-error");
   const [version,setVersion] = useState(0);
   useEffect(()=>{
     const controller = new AbortController();

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { UserRound, Package, LogOut } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 export function AccountMenu() {
   const path=usePathname();
   const [leaving,setLeaving]=useState(false);

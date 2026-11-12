@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { BookOpen, LogOutIcon, MoreVerticalIcon, SettingsIcon, Store } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

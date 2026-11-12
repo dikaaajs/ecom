@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { Trash } from "lucide-react";
 
 type MediaFormProps = {
@@ -21,10 +21,10 @@ export default function MediaForm({ imageBanner, setImageBanner, imageProduct, s
     try {
       const url = new URL(value);
       if (!["https:", "http:"].includes(url.protocol)) throw new Error();
-      if (imageProduct.includes(value)) { toast.error("Gambar sudah ada."); return; }
+      if (imageProduct.includes(value)) { toast.warning("Gambar sudah ada."); return; }
       setImageProduct(images => [...images, value]);
       setImageUrl("");
-    } catch { toast.error("Masukkan tautan gambar http atau https yang valid."); }
+    } catch { toast.warning("Masukkan tautan gambar http atau https yang valid."); }
   }
   return <div className="grid gap-4 py-2">
     <div className="grid gap-2">
