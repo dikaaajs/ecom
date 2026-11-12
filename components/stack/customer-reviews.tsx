@@ -1,0 +1,15 @@
+"use client";
+import { Star, MessageSquare, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
+
+export function CustomerReviews() {
+  const {settings:s} = useSiteSettings();
+  if(!s.showReviews) return null;
+  const average = s.reviews.length ? s.reviews.reduce((sum,item)=>sum+item.rating,0)/s.reviews.length : null;
+  return <section id="reviews" className="scroll-mt-28 border-y border-slate-200/70 bg-white/60 py-20 sm:py-24">
+    <div className="landing-container"><div className="mb-10 flex flex-wrap items-end justify-between gap-7"><div><p className="landing-eyebrow">Cerita pelanggan</p><h2 className="landing-heading mt-3">{s.reviewsTitle}</h2><p className="mt-4 max-w-xl text-sm leading-7 text-slate-500">Pengalaman belanja dan pemakaian produk, dibagikan oleh pelanggan kami.</p></div>
+      {average!==null && <div className="flex items-center gap-4 rounded-2xl border bg-white px-5 py-4"><strong className="text-4xl tracking-tight">{average.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1})}<span className="text-lg font-medium text-slate-400"> / 5</span></strong><div><div className="flex gap-1 text-amber-500" aria-hidden="true">{Array.from({length:5},(_,i)=><Star key={i} size={15} fill={i<Math.round(average)?"currentColor":"none"}/>)}</div><p className="mt-2 text-xs text-slate-500">{s.reviews.length} ulasan dipublikasikan</p></div></div>}
+    </div>{s.reviews.length ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{s.reviews.map((review,i)=><figure key={i} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-7"><div className="flex gap-1 text-amber-500" aria-label={`${review.rating} dari 5 bintang`}>{Array.from({length:5},(_,n)=><Star key={n} size={16} fill={n<review.rating?"currentColor":"none"} aria-hidden="true"/>)}</div><blockquote className="my-6 flex-1 whitespace-pre-line text-base leading-7">“{review.comment}”</blockquote><figcaption className="flex items-center gap-3 border-t pt-5"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold">{Array.from(review.name)[0]?.toUpperCase()}</span><div><p className="text-sm font-bold">{review.name}</p>{review.product && <p className="mt-1 text-xs text-slate-500">{review.product}</p>}</div></figcaption></figure>)}</div> : <div className="grid items-center gap-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 md:grid-cols-[auto_1fr_auto]"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><MessageSquare size={25}/></span><div><h3 className="text-lg font-bold">Cerita pertama masih menunggu.</h3><p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Belum ada ulasan yang dipublikasikan. Rating akan tampil setelah pengalaman pelanggan tersedia.</p></div><Link href="/product" className="inline-flex items-center gap-2 text-sm font-bold text-blue-600">Kenali produknya <ArrowUpRight size={17}/></Link></div>}</div>
+  </section>;
+}

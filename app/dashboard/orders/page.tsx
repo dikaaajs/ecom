@@ -1,4 +1,5 @@
 "use client";
+import { useToastFeedback } from "@/lib/hooks/use-toast-feedback";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Package, RefreshCw } from "lucide-react";
@@ -19,7 +20,7 @@ const rupiah = (v: string | number) => new Intl.NumberFormat("id-ID", { style: "
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useToastFeedback("error", "orders-load-error");
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [status, setStatus] = useState("");

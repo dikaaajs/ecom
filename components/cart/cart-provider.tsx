@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "@/lib/notify";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { CART_STORAGE_KEY, normalizeCart, type CartItem } from "@/lib/cart";
 type CartContextValue = {
@@ -20,18 +21,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, []);
   useEffect(() => {
-    if (ready) localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    if (ready) {
+      try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items)); }
+      catch { toast.warning("Keranjang belum dapat disimpan di perangkat. Jangan tutup halaman sebelum selesai berbelanja.", { id: "cart-storage" }); }
+    }
   }, [items, ready]);
   const addItem = useCallback((productId: string, quantity = 1) => {
     setItems(old => normalizeCart([...old, { productId, quantity }]));
+    toast.success("Produk ditambahkan ke keranjang.", { id: "cart-action" });
   }, []);
   const setQuantity = useCallback((productId: string, quantity: number) => {
     setItems(old => normalizeCart(old.filter(item => item.productId !== productId).concat(quantity > 0 ? [{ productId, quantity }] : [])));
+    toast.info("Jumlah produk di keranjang diperbarui.", { id: "cart-action" });
   }, []);
   const removeItem = useCallback((productId: string) => {
     setItems(old => old.filter(item => item.productId !== productId));
+    toast.info("Produk dihapus dari keranjang.", { id: "cart-action" });
   }, []);
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => { setItems([]); toast.info("Keranjang dikosongkan.", { id: "cart-action" }); }, []);
   const count = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
   return <CartContext.Provider value={{ items, ready, count, addItem, setQuantity, removeItem, clearCart }}>{children}</CartContext.Provider>;
 }

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import { tagColorStyles } from "@/data/tag-colors";
 type PropButtonTagEdit = {
@@ -57,7 +57,7 @@ export default function ButtonTagEdit({ tag, onUpdated }: PropButtonTagEdit) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Upload failed");
 
-      toast.success("tags uploaded successfully!");
+      toast.success("Tag berhasil diperbarui.");
       setOpen(false);
       onUpdated();
     } catch (err: any) {

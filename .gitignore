@@ -12,9 +12,11 @@
 
 # testing
 /coverage
+/.catalog-backups/
 
 # next.js
 /.next/
+/.next-dev/
 /out/
 
 # production

@@ -1,149 +1,33 @@
-"use client";
-
+﻿"use client";
 import Link from "next/link";
-import { Bookmark, Menu, ShoppingCart, UserRound } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { forwardRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Menu, ShoppingBag, UserRound } from "lucide-react";
+import { storefrontAccountLink } from "@/lib/account/navigation";
 import { useCart } from "@/components/cart/cart-provider";
-import { usePathname, useRouter } from "next/navigation";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function Navbar() {
-  const pathname = usePathname();
-  const [isScrolled, setIsScrolled] = useState(pathname == "/" ? false : true);
-  const router = useRouter();
-  const { count, ready } = useCart();
-
-  useEffect(() => {
-    if (pathname !== "/") {
-      setIsScrolled(true);
-    } else {
-      setIsScrolled(false);
-    }
-    const handleScroll = () => {
-      if (window.scrollY > window.innerHeight - 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      if (pathname !== "/") {
-        setIsScrolled(true); // Aktifkan navbar scrolled jika bukan di halaman root
-      } else {
-        window.addEventListener("scroll", handleScroll);
-      }
-    }
-
-    return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [pathname]);
-
-  return (
-    <div
-      className={`fixed top-0 z-40 w-full px-4 py-4 md:px-[50px] md:py-[20px] transition-colors flex justify-between ${
-        pathname.includes("dashboard") && "hidden"
-      }  ${
-        isScrolled
-          ? "text-black bg-white shadow-md"
-          : "text-white bg-transparent"
-      }`}
-    >
-      <img
-        src={`${isScrolled ? "/logoo.png" : "/logo-uncut.png"}`}
-        className="h-8 md:h-[50px] rounded-md"
-        alt="Pulsar Logo"
-      />
-
-      {/* Mobile Navigation */}
-      <Sheet>
-        <SheetTrigger asChild className="md:hidden">
-          <Button variant="ghost" size="icon">
-            <Menu className="w-5 h-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right">
-          <div className="flex flex-col gap-4 mt-8">
-            <Link
-              href="/product"
-              className="px-2 py-2 text-lg font-medium transition-colors hover:text-primary"
-            >
-              Explore
-            </Link>
-            <Link href="/cart" className="flex items-center gap-2 px-2 py-2 text-lg font-medium"><ShoppingCart size={19} /> Cart {ready && count > 0 ? `(${count})` : ""}</Link>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Desktop Navigation */}
-      <NavigationMenu className="hidden md:flex">
-        <NavigationMenuList className="gap-3">
-          {/* bookmark */}
-          <NavigationMenuItem>
-            <Button variant={"ghost"} className="cursor-pointer">
-              <Bookmark />
-            </Button>
-          </NavigationMenuItem>
-
-          {/* co */}
-          <NavigationMenuItem>
-            <Link href="/cart" className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg transition hover:bg-blue-50 hover:text-blue-600" aria-label="View cart">
-              <ShoppingCart size={20} />
-              {ready && count > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white">{count}</span>}
-            </Link>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
-            <Button
-              className={`cursor-pointer transition-colors ${
-                "storefront-btn-primary"
-              }`}
-            >
-              <UserRound />
-              Sign in
-            </Button>
-          </NavigationMenuItem>
-        </NavigationMenuList>
-      </NavigationMenu>
+  const pathname=usePathname();
+  const {settings:s}=useSiteSettings();
+  const {data:session}=useSession();
+  const {count,ready}=useCart();
+  const [scrolled,setScrolled]=useState(false);
+  const [open,setOpen]=useState(false);
+  useEffect(()=>{const update=()=>setScrolled(window.scrollY>24);update();window.addEventListener("scroll",update,{passive:true});return()=>window.removeEventListener("scroll",update);},[]);
+  if(pathname.startsWith("/dashboard") || pathname.startsWith("/auth/"))return null;
+  const solid=pathname!=="/" || scrolled;
+  const {href:accountHref,label:accountLabel}=storefrontAccountLink(session?.user?.role);
+  const links=[{label:"Koleksi",href:"/#explore"},{label:"Cara belanja",href:"/#how-it-works"},...(s.showReviews?[{label:"Ulasan",href:"/#reviews"}]:[])];
+  return <header className={"fixed inset-x-0 top-0 z-40 border-b transition-colors duration-200 "+(solid?"border-slate-200/80 bg-white/95 text-slate-900 shadow-sm backdrop-blur-xl":"border-white/15 bg-slate-950/10 text-white")}>
+    <div className="landing-container flex h-20 items-center justify-between gap-4">
+      <Link href="/" aria-label={s.siteName} className="flex min-w-0 max-w-[230px] items-center gap-3">{s.logoUrl && <img src={s.logoUrl} alt="" className="h-9 max-w-28 object-contain"/>}<span className="truncate text-base font-extrabold tracking-tight sm:text-lg">{s.siteName}</span></Link>
+      <nav aria-label="Navigasi utama" className="hidden items-center gap-8 text-sm font-medium lg:flex">{links.map(link=><a key={link.href} href={link.href} className="opacity-80 transition hover:opacity-100">{link.label}</a>)}</nav>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4"><Link href="/cart" aria-label={`Keranjang${ready && count>0?`, ${count} produk`:""}`} className="relative rounded-full p-2.5"><ShoppingBag size={20}/>{ready&&count>0&&<span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">{count}</span>}</Link><Link href={accountHref} aria-label={accountLabel} className="rounded-full p-2.5 sm:hidden"><UserRound size={20}/></Link><Link href={accountHref} className="storefront-btn-primary hidden items-center gap-2 rounded-full px-5 py-3 text-xs font-bold sm:inline-flex">{accountLabel}<UserRound size={15}/></Link>
+        <Sheet open={open} onOpenChange={setOpen}><SheetTrigger asChild><button aria-label="Buka menu" className="rounded-full p-2.5 lg:hidden"><Menu size={22}/></button></SheetTrigger><SheetContent side="right" className="px-6"><SheetTitle className="mt-8 text-lg font-bold">{s.siteName}</SheetTitle><nav aria-label="Menu ponsel" className="mt-8 flex flex-col gap-6">{links.map(link=><a key={link.href} href={link.href} onClick={()=>setOpen(false)} className="font-semibold">{link.label}</a>)}<Link href={accountHref} onClick={()=>setOpen(false)} className="rounded-xl bg-slate-900 px-5 py-3 text-center text-sm font-bold text-white">{accountLabel}</Link><Link href="/cart" onClick={()=>setOpen(false)} className="text-sm">Lihat keranjang {ready&&count>0?`(${count})`:""}</Link></nav></SheetContent></Sheet>
+      </div>
     </div>
-  );
+  </header>;
 }
-
-const ListItem = forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink asChild>
-        <a
-          ref={ref}
-          className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-            className
-          )}
-          {...props}
-        >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </a>
-      </NavigationMenuLink>
-    </li>
-  );
-});
-ListItem.displayName = "ListItem";

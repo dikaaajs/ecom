@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil } from "lucide-react";
 
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 type PropButtonCategoryEdit = {
   category: any;
   onUpdated: () => void;
@@ -44,7 +44,7 @@ export default function ButtonCategoryEdit({
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Update failed");
 
-      toast.success("category updated successfully!");
+      toast.success("Kategori berhasil diperbarui.");
       setOpen(false);
       onUpdated();
     } catch (err: any) {

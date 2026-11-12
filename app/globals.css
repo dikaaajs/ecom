@@ -7,8 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -118,7 +118,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
 
@@ -128,11 +128,14 @@
 
 @font-face {
   font-family: "Satoshi";
-  src: url("/font/Satoshi-Variable.ttf");
+  src: url("/font/Satoshi-Variable.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 .font-satoshi {
-  font-family: "Satoshi";
+  font-family: "Satoshi", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Storefront palette: refreshed bright blues without altering dashboard controls. */
@@ -169,3 +172,52 @@
 .shipping-origin-map { z-index: 0; }
 .shipping-origin-marker { background: transparent; border: 0; }
 .shipping-origin-pin svg { display: block; width: 46px; height: 52px; filter: drop-shadow(0 3px 5px rgba(26,52,112,.25)); }
+
+/* Storefront customization is scoped away from the admin dashboard. */
+.storefront-theme .storefront-btn-primary {
+  background: var(--storefront-accent);
+  color: var(--storefront-button-text);
+}
+.storefront-theme .storefront-btn-primary:hover { background: var(--storefront-accent); filter: brightness(.92); color: var(--storefront-button-text); }
+.storefront-theme [class*="bg-[#f6f9ff]"],
+.storefront-theme main.bg-slate-50 { background-color: var(--storefront-background); }
+.storefront-theme .text-blue-600 { color: var(--storefront-accent); }
+.storefront-theme .text-slate-900 { color: var(--storefront-text); }
+
+.landing-container { width: min(100% - 3rem, 1280px); margin-inline: auto; }
+.landing-heading { max-width: 720px; font-size: clamp(1.9rem, 3.5vw, 2.8rem); font-weight: 700; line-height: 1.16; letter-spacing: -.045em; }
+.landing-eyebrow { color: var(--storefront-accent, #2563eb); font-size: .65rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.landing-page { background-color: var(--storefront-background, #f6f9ff); }
+.landing-page section { scroll-margin-top: 7rem; }
+@media (max-width: 400px) { .landing-container { width: calc(100% - 2rem); } }
+@media (prefers-reduced-motion: reduce) { .landing-page *, .landing-page *::before, .landing-page *::after { transition: none !important; } }
+
+/* Neutral shadcn-style notifications, outside the storefront's custom color palette. */
+[data-sonner-toaster] {
+  font-family: "Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --width: 380px;
+  z-index: 10000 !important;
+}
+[data-sonner-toaster] [data-sonner-toast].app-toast {
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px 38px 18px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 8px 28px -8px rgb(15 23 42 / 18%), 0 2px 6px rgb(15 23 42 / 4%);
+}
+[data-sonner-toaster] .app-toast [data-icon] { margin-top: 1px; margin-left: 0; flex-shrink: 0; }
+[data-sonner-toaster] .app-toast-title { font-size: 14px; font-weight: 700; line-height: 20px; }
+[data-sonner-toaster] .app-toast-description { color: #64748b; font-size: 13px; line-height: 20px; overflow-wrap: anywhere; }
+[data-sonner-toaster] .app-toast [data-content] { gap: 3px; min-width: 0; }
+[data-sonner-toaster] [data-sonner-toast].app-toast [data-close-button].app-toast-close {
+  top: 12px; right: 10px; left: auto; transform: none;
+  height: 24px; width: 24px; border: 0; background: transparent; color: #94a3b8;
+}
+[data-sonner-toaster] [data-sonner-toast].app-toast [data-close-button].app-toast-close:hover { background: #f1f5f9; color: #334155; }
+[data-sonner-toaster] .app-toast[data-type="success"] { border-left: 3px solid #10b981; }
+[data-sonner-toaster] .app-toast[data-type="error"] { border-left: 3px solid #ef4444; }
+[data-sonner-toaster] .app-toast[data-type="warning"] { border-left: 3px solid #f59e0b; }
+[data-sonner-toaster] .app-toast[data-type="info"] { border-left: 3px solid #3b82f6; }

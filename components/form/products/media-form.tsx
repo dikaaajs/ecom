@@ -1,12 +1,11 @@
+﻿"use client";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { createPortal } from "react-dom";
-
-import { Trash, X } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { toast } from "@/lib/notify";
+import { Trash } from "lucide-react";
 
 type MediaFormProps = {
   imageBanner: string;
@@ -14,168 +13,38 @@ type MediaFormProps = {
   imageProduct: string[];
   setImageProduct: React.Dispatch<React.SetStateAction<string[]>>;
 };
-
-export default function MediaForm({
-  imageBanner,
-  setImageBanner,
-  imageProduct,
-  setImageProduct,
-}: MediaFormProps) {
+export default function MediaForm({ imageBanner, setImageBanner, imageProduct, setImageProduct }: MediaFormProps) {
+  const [imageUrl, setImageUrl] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  const checkStringUrl = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault(); // blok default paste behavior
-    const pastedText = e.clipboardData.getData("text");
-
-    // regex sederhana cek URL gambar
-    const isImageUrl = /^https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp)$/i.test(
-      pastedText,
-    );
-
-    return { isImageUrl, pastedText };
-  };
-
-  //   handle paste for image banner
-  const handlePasteImageBanner = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-  ) => {
-    const { isImageUrl, pastedText } = checkStringUrl(e);
-    if (isImageUrl) {
-      setImageBanner(pastedText);
-      toast.success("Valid image URL pasted!");
-    } else {
-      setImageBanner("");
-      toast.error("The pasted text is not a valid image URL!");
-    }
-  };
-
-  const handlePasteImagesProduct = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-  ) => {
-    const { isImageUrl, pastedText } = checkStringUrl(e);
-
-    if (isImageUrl) {
-      setImageProduct((prev) => [...prev, pastedText]);
-      toast.success("Valid image URL pasted!");
-    } else {
-      toast.error("The pasted text is not a valid image URL!");
-    }
-  };
-
-  const handleRemoveImage = (url: string) => {
-    setImageProduct((prev) => prev.filter((img) => img !== url));
-    toast.success("Image removed!");
-  };
-
-  //   cegah untuk user hanya bisa paste saja
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "v" || !(e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-    }
-  };
-
-  return (
-    <div className="grid gap-4 py-2">
-      {/* image banner */}
-      <div className="grid gap-2">
-        <Label htmlFor="imageBanner">Image banner</Label>
-        {imageBanner && (
-          <img
-            src={imageBanner}
-            className="w-full rounded-md object-cover h-[200px] border border-slate-100 shadow-sm"
-            alt=""
-          />
-        )}
-        <Input
-          id="imageBanner"
-          name="imageBanner"
-          value={imageBanner}
-          onPaste={handlePasteImageBanner}
-          onKeyDown={handleKeyDown}
-          placeholder="paste image link here"
-          readOnly
-        />
-      </div>
-
-      {/* image product */}
-      <div className="grid gap-2">
-        <Label htmlFor="imageUrl">Image product</Label>
-        {imageProduct && (
-          <div className="flex gap-2 flex-wrap">
-            {imageProduct.map((image: string, idx: number) => {
-              return (
-                <div key={`${image}-${idx}`} className="relative group">
-                  {/* IMAGE */}
-                  <img
-                    src={image}
-                    onClick={() => setPreviewImage(image)}
-                    className="rounded-md object-cover h-[100px] w-[100px] border border-slate-100 shadow-sm cursor-pointer hover:opacity-80 transition"
-                    alt=""
-                  />
-
-                  {/* DELETE BUTTON */}
-                  <Button
-                    type="button"
-                    onClick={() => handleRemoveImage(image)}
-                    className="absolute top-1 right-1 bg-black/60 hover:text-red-600 text-xs px-1 rounded opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                  >
-                    <Trash className="h-1 w-1" />
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        <Input
-          id="imageUrl"
-          name="imageUrl"
-          onPaste={handlePasteImagesProduct}
-          onKeyDown={handleKeyDown}
-          placeholder="paste image link here"
-          readOnly
-        />
-      </div>
-
-      {/* preview image */}
-      {previewImage &&
-        createPortal(
-          <div
-            // 1. Z-INDEX HARUS SANGAT TINGGI (di atas 50 milik Dialog)
-            // 2. pointer-events-auto memaksa elemen ini bisa diklik meskipun body di-lock
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] pointer-events-auto"
-            onClick={(e) => {
-              e.stopPropagation();
-              setPreviewImage(null);
-            }}
-          >
-            <div className="relative max-h-[90%] max-w-[90%] flex items-center justify-center">
-              <img
-                src={previewImage}
-                onClick={(e) => e.stopPropagation()} // Cegah klik gambar menutup overlay
-                className="max-h-[80vh] rounded-lg shadow-2xl object-contain"
-                alt="Preview"
-              />
-
-              {/* Pindahkan Button ke dalam div relative yang sama dengan gambar */}
-              {/* Tambahkan TooltipProvider jika tombol masih tidak responsif */}
-              <Button
-                variant="outline"
-                size="icon"
-                type="button" // Pastikan type button agar tidak submit form
-                className="absolute -top-4 -right-4 z-[10000] rounded-full bg-white hover:bg-slate-100 text-black shadow-md"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setPreviewImage(null);
-                }}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close preview image</span>
-              </Button>
-            </div>
-          </div>,
-          document.body,
-        )}
+  function addImage() {
+    const value = imageUrl.trim();
+    try {
+      const url = new URL(value);
+      if (!["https:", "http:"].includes(url.protocol)) throw new Error();
+      if (imageProduct.includes(value)) { toast.warning("Gambar sudah ada."); return; }
+      setImageProduct(images => [...images, value]);
+      setImageUrl("");
+    } catch { toast.warning("Masukkan tautan gambar http atau https yang valid."); }
+  }
+  return <div className="grid gap-4 py-2">
+    <div className="grid gap-2">
+      <Label htmlFor="imageBanner">Gambar utama (tautan URL)</Label>
+      {imageBanner && <img src={imageBanner} alt="Gambar utama produk" className="h-48 w-full rounded-md border object-contain" />}
+      <Input id="imageBanner" type="url" value={imageBanner} onChange={event => setImageBanner(event.target.value)} placeholder="https://contoh.com/produk.jpg" />
     </div>
-  );
+    <div className="grid gap-2">
+      <Label htmlFor="galleryImageUrl">Galeri produk (tautan URL)</Label>
+      <div className="flex gap-2"><Input id="galleryImageUrl" type="url" value={imageUrl} onChange={event => setImageUrl(event.target.value)} placeholder="https://contoh.com/detail.jpg" onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); addImage(); } }} /><Button type="button" variant="outline" onClick={addImage}>Tambah gambar</Button></div>
+      <p className="text-xs text-muted-foreground">Masukkan tautan gambar yang dapat diakses publik, lalu tekan Tambah gambar. Periksa pratinjau sebelum menyimpan.</p>
+      <div className="flex flex-wrap gap-3">{imageProduct.map((image, index) => <div key={image + index} className="space-y-1">
+        <button type="button" aria-label={"Lihat gambar " + (index + 1)} onClick={() => setPreviewImage(image)}><img src={image} alt={"Galeri produk " + (index + 1)} className="h-24 w-24 rounded-md border object-cover" /></button>
+        <Button type="button" size="sm" variant="outline" aria-label={"Hapus gambar " + (index + 1)} onClick={() => setImageProduct(images => images.filter((_, i) => i !== index))}><Trash size={14} />Hapus</Button>
+      </div>)}</div>
+    </div>
+    <Dialog open={!!previewImage} onOpenChange={open => { if (!open) setPreviewImage(null); }}>
+      <DialogContent className="sm:max-w-3xl"><DialogHeader><DialogTitle>Pratinjau gambar</DialogTitle><DialogDescription>Periksa gambar galeri produk.</DialogDescription></DialogHeader>
+        {previewImage && <img src={previewImage} alt="Pratinjau galeri produk" className="max-h-[70vh] w-full object-contain" />}
+      </DialogContent>
+    </Dialog>
+  </div>;
 }
