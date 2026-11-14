@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { summarizeDelivery } from "@/lib/delivery";
+import { getSavedShippingOrigin } from "@/lib/shipping/get-origin";
 export const dynamic = "force-dynamic";
 const inputSchema = z.object({
   items: z.array(z.object({ productId: z.string().min(1).max(128), quantity: z.number().int().min(1).max(99) })).min(1).max(50),
@@ -15,7 +17,9 @@ export async function POST(req: Request) {
     }
     const products = await prisma.product.findMany({
       where: { id: { in: items.map(i => i.productId) }, isPublished: true },
-      select: { id: true, title: true, imageUrl: true, price: true, stock: true, type: true, weight: true },
+      select: { id: true, title: true, imageUrl: true, price: true, stock: true, type: true, weight: true,
+        digitalAsset: { select: { id: true } },
+      },
     });
     const byId = new Map(products.map(p => [p.id, p]));
     const lines = items.map(item => {
@@ -32,11 +36,35 @@ export async function POST(req: Request) {
     });
     const valid = lines.every(line => line.available);
     const subtotal = lines.reduce((sum, line) => sum + (line.available && "lineTotal" in line ? Number(line.lineTotal) : 0), 0);
+    const delivery = summarizeDelivery(items.flatMap(item => {
+      const product = byId.get(item.productId);
+      return product && product.stock >= item.quantity ? [{ productId: item.productId, type: product.type, quantity: item.quantity, weightGram: product.type === "PHYSICAL" ? product.weight : 0 }] : [];
+    }));
+    const shippingOriginConfigured = delivery.shippingRequired ? (await getSavedShippingOrigin()) !== null : true;
+    const missingDigitalFiles = items.filter(item => {
+      const product = byId.get(item.productId);
+      return product?.type === "DIGITAL" && product.stock >= item.quantity && !product.digitalAsset;
+    }).length;
+    const paymentConfigured = !!process.env.MIDTRANS_SERVER_KEY &&
+      (process.env.MIDTRANS_IS_PRODUCTION !== "true" || process.env.MIDTRANS_ENABLE_LIVE_PAYMENTS === "true");
+    const checkoutBlockers = [
+      ...(!valid ? ["INVALID_CART"] : []),
+      ...(delivery.shippingRequired && !shippingOriginConfigured ? ["SHIPPING_ORIGIN_MISSING"] : []),
+      ...(delivery.shippingRequired ? ["SHIPPING_SELECTION_REQUIRED"] : []),
+      ...(missingDigitalFiles > 0 ? ["DIGITAL_ASSET_MISSING"] : []),
+      ...(!paymentConfigured ? ["PAYMENT_PROVIDER_NOT_CONFIGURED"] : []),
+    ];
     return NextResponse.json({
       valid, lines, subtotal: subtotal.toFixed(2),
+      shippingOriginConfigured, paymentConfigured,
+      // Physical checkout needs a destination and confirmed courier rate first.
+      checkoutReady: valid && !delivery.shippingRequired && missingDigitalFiles === 0 && paymentConfigured,
+      checkoutBlockers,
+      digitalAssetReady: missingDigitalFiles === 0,
+      delivery,
       shippingRequired: lines.some(line => line.available && "type" in line && line.type === "PHYSICAL"),
       shipping: null, total: null,
-      note: "Quote only. Shipping and payments are not yet implemented. Prices and stock will be revalidated at checkout.",
+      note: "Indicative quote. Final stock, product prices, shipping costs and provider status are validated again when an order is created.",
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Cart quote failed", error);

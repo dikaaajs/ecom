@@ -31,6 +31,7 @@ export async function GET(request: Request) {
           id: true, orderNumber: true, status: true, currency: true,
           subtotal: true, shippingCost: true, total: true, createdAt: true,
           customer: { select: { id: true, name: true, email: true } },
+          shipment: { select: { status: true, courier: true, service: true, trackingNumber: true } },
           _count: { select: { items: true } },
         },
       }),

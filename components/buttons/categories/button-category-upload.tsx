@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil, PlusIcon } from "lucide-react";
 
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 type PropButtonCategoryUpload = {
   onUpdated: () => void;
 };
@@ -43,7 +43,7 @@ export default function ButtonCategoryUpload({
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Upload failed");
 
-      toast.success("Category uploaded successfully!");
+      toast.success("Kategori berhasil ditambahkan.");
       setOpen(false);
       onUpdated();
     } catch (err: any) {

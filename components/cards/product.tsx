@@ -1,75 +1,28 @@
-import React from "react";
-import { Badge } from "../ui/badge";
+﻿import { Badge } from "@/components/ui/badge";
 import { tagColorStyles } from "@/data/tag-colors";
+import type { Product } from "@/components/table/product/product-column";
 
-export default function CardProduct({ row }: { row: any }) {
-  return (
-    <div className="z-50 bg-white w-full space-y-[15px] relative">
-      {/* hedaer */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium capitalize">{row.original.title}</p>
-          <p className="text-xs text-muted-foreground line-clamp-3">
-            {row.original.description}
-          </p>
-        </div>
-        <Badge className={tagColorStyles["GREEN"]}>
-          {`Rp ${Number(row.original.price).toLocaleString()}`}
-        </Badge>
-      </div>
+type PreviewProduct = Pick<Product, "title" | "description" | "price" | "imageUrl" | "images" | "tags">;
 
-      {/* image render */}
-      <div className="w-full relative rounded-md object-cover h-[200px] border border-slate-100">
-        <img
-          src={row.original.imageUrl}
-          className="w-full h-full object-cover rounded-md"
-          alt=""
-        />
-        <div className="absolute -bottom-5 right-2">
-          <ImagesProduct productsImage={row.original.images} />
-        </div>
-      </div>
-
-      {/* tags map */}
-      <div className="flex justify-center gap-[5px] pt-6">
-        {row.original.tags.map((tag: any, idx: any) => {
-          return (
-            <Badge
-              key={idx}
-              className={
-                tagColorStyles[tag.color as keyof typeof tagColorStyles]
-              }
-            >
-              {tag.name}
-            </Badge>
-          );
-        })}
-      </div>
+export default function CardProduct({ product }: { product: PreviewProduct }) {
+  const images = product.images ?? [];
+  return <article aria-label="Pratinjau produk" className="min-w-0 space-y-3 whitespace-normal [overflow-wrap:anywhere]">
+    <div className="flex min-w-0 items-start justify-between gap-3">
+      <h3 className="min-w-0 flex-1 text-sm font-semibold leading-5">{product.title}</h3>
+      <Badge className="max-w-[45%] shrink-0 whitespace-normal bg-emerald-50 text-right text-emerald-700">
+        {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(product.price))}
+      </Badge>
     </div>
-  );
+    {product.description && <p className="line-clamp-4 text-xs leading-5 text-muted-foreground">{product.description}</p>}
+    {product.imageUrl && <div className="flex h-40 items-center justify-center overflow-hidden rounded-lg border bg-white">
+      <img src={product.imageUrl} alt={product.title} className="h-full w-full object-contain p-2" />
+    </div>}
+    {images.length > 0 && <div aria-label="Galeri produk" className="flex flex-wrap gap-2">
+      {images.slice(0, 3).map(image => <img key={image.id} src={image.url} alt="" className="h-10 w-10 shrink-0 rounded-md border bg-white object-contain" />)}
+      {images.length > 3 && <span className="flex h-10 min-w-10 items-center justify-center rounded-md bg-slate-100 px-2 text-xs text-slate-600">+{images.length - 3}</span>}
+    </div>}
+    {!!product.tags?.length && <div className="flex min-w-0 flex-wrap gap-1.5">
+      {product.tags.map(tag => <Badge key={tag.id} className={"max-w-full whitespace-normal " + tagColorStyles[tag.color]}>{tag.name}</Badge>)}
+    </div>}
+  </article>;
 }
-
-const ImagesProduct = ({ productsImage }: { productsImage: any }) => {
-  let imageLeft = productsImage.length - 3;
-  return (
-    <div className="flex -space-x-2">
-      {productsImage.slice(0, 3).map((image: any, index: any) => (
-        <div
-          key={index}
-          className="w-10 h-10 rounded-md overflow-hidden ring-background ring-2"
-        >
-          <img
-            src={image.url}
-            alt={image.id}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ))}
-      {imageLeft > 0 && (
-        <div className="ring-background ring-2 rounded-md w-10 h-10 bg-gray-100 flex justify-center items-center">
-          <span className="text-xs paragraph">+{imageLeft}</span>
-        </div>
-      )}
-    </div>
-  );
-};

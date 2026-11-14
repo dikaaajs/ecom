@@ -1,337 +1,75 @@
-"use client";
+﻿"use client";
 
-import { Footer } from "@/components/stack/footer";
-import { ProductCard } from "@/components/stack/product-card";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Globe, Map, Search, SearchX, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, ArrowUpRight, Check, Search, SearchX, X, Package, CreditCard, ClipboardList, Monitor, Sparkles } from "lucide-react";
+import { Footer } from "@/components/stack/footer";
+import { ProductCard } from "@/components/stack/product-card";
+import { CustomerReviews } from "@/components/stack/customer-reviews";
 import { ProductSkeletonGrid } from "@/components/stack/product-skeleton";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
 import type { StorefrontProduct } from "@/types/storefront";
-import type { ProductsType } from "@/types/products";
 
+const money = (price: number | string) => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(price));
+const benefits = [
+  {icon:Package,title:"Kenali sebelum membeli",description:"Foto, spesifikasi, harga, dan ketersediaan produk di satu tempat."},
+  {icon:CreditCard,title:"Periksa total belanja",description:"Tinjau rincian pesanan dan biaya pengiriman sebelum pembayaran."},
+  {icon:ClipboardList,title:"Pesanan tetap tercatat",description:"Akses riwayat dan perkembangan pesanan melalui akun pembeli."},
+];
 export default function Home() {
-  const router = useRouter();
-
-  const [products, setProducts] = useState<ProductsType<StorefrontProduct>>({
-    success: false,
-    data: [],
-    count: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-
-  const getProducts = async () => {
-    setLoading(true);
-    setLoadError(false);
-    try {
-      const res = await fetch("/api/products", {
-        method: "GET",
-        cache: "no-store", // biar ga ke-cache
-      });
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getProducts();
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return products.data.filter((product) => {
-      const searchable = [product.title, product.description || "", product.category?.name || "", ...product.tags.map((tag) => tag.name)].join(" ").toLowerCase();
-      return (!query || searchable.includes(query)) && (selectedType === "all" || product.type === selectedType);
-    });
-  }, [products.data, searchQuery, selectedType]);
-
-  return (
-    <div>
-      {/* hero */}
-      <div className="relative h-screen w-full font-satoshi">
-        {/* Hero Background */}
-        <Image
-          src="/wallpaper.gif"
-          alt="banner"
-          layout="fill"
-          objectFit="cover"
-          className="absolute top-0 left-0 w-full h-full"
-        />
-
-        {/* Overlay Gelap */}
-        <div className="absolute top-0 left-0 w-full h-full bg-black/40  "></div>
-
-        {/* Konten Hero (Opsional) */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
-          <h1 className="text-4xl font-extrabold font-satoshi">
-            Pixel Perfection
-          </h1>
-          <p className="text-lg font-satoshi">
-            Discover a collection of exclusive, high-quality pixel art. From
-            classic characters to fantasy worlds—find the perfect piece for you!
-          </p>
-          <div className="flex gap-5 justify-center">
-            <Button
-              className="storefront-btn-primary cursor-pointer"
-              onClick={() => router.push("/product")}
-            >
-              <Globe />
-              Explore
-            </Button>
+  const {settings:site}=useSiteSettings();
+  const [products,setProducts]=useState<StorefrontProduct[]>([]);
+  const [loading,setLoading]=useState(true);
+  const [loadError,setLoadError]=useState(false);
+  const [search,setSearch]=useState("");
+  const [type,setType]=useState("all");
+  const [category,setCategory]=useState("all");
+  const getProducts=useCallback(async(signal?:AbortSignal)=>{
+    setLoading(true);setLoadError(false);
+    try {const response=await fetch("/api/products",{cache:"no-store",signal:signal?AbortSignal.any([signal,AbortSignal.timeout(20000)]):AbortSignal.timeout(20000)});const body=await response.json();if(!response.ok || !Array.isArray(body.data))throw Error();if(!signal?.aborted)setProducts(body.data);}
+    catch {if(!signal?.aborted)setLoadError(true);}
+    finally {if(!signal?.aborted)setLoading(false);}
+  },[]);
+  useEffect(()=>{const controller=new AbortController();void getProducts(controller.signal);return()=>controller.abort();},[getProducts]);
+  const categories=useMemo(()=>Array.from(new Map(products.flatMap(p=>p.category?[[p.category.id,p.category] as const]:[])).values()),[products]);
+  const filtered=useMemo(()=>products.filter(p=>(type==="all"||p.type===type)&&(category==="all"||p.category?.id===category)&&[p.title,p.description||"",p.category?.name||"",...p.tags.map(t=>t.name)].join(" ").toLowerCase().includes(search.trim().toLowerCase())),[products,type,category,search]);
+  const available=products.filter(p=>p.stock>0 && p.type==="PHYSICAL");
+  const featured=[...available].filter(p=>p.title.toLowerCase().includes("keyboard")).sort((a,b)=>Number(b.price)-Number(a.price))[0] || available[0] || products[0];
+  const reset=()=>{setSearch("");setType("all");setCategory("all");};
+  const selectCategory=(id:string)=>{setCategory(id);setType("all");document.getElementById("explore")?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});};
+  return <main className="landing-page">
+    <section id="home" className="relative isolate overflow-hidden rounded-b-[2.5rem] bg-slate-950 text-white sm:rounded-b-[3.5rem]">
+      {site.heroImage && <Image src={site.heroImage} alt="" fill unoptimized priority sizes="100vw" className="-z-30 object-cover"/>}
+      <div className="absolute inset-0 -z-20 bg-black" style={{opacity:site.heroOverlay/100}}/><div className="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/45"/>
+      <div className="landing-container pb-10 pt-32 sm:pb-12 sm:pt-40">
+        {site.announcement && <p className="mb-8 w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs backdrop-blur">{site.announcement}</p>}
+        <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+          <div><span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-medium text-white/90"><span className="h-1.5 w-1.5 rounded-full bg-sky-300"/>Pilihan untuk hari produktif</span><h1 className="mt-7 max-w-2xl text-[clamp(2.6rem,5.4vw,5rem)] font-bold leading-[1.07] tracking-[-0.055em]">{site.heroTitle}</h1><p className="mt-6 max-w-lg text-base leading-8 text-white/75 sm:text-lg">{site.heroDescription}</p>
+            <div className="mt-9 flex flex-wrap items-center gap-5"><Link href={site.heroButtonLink||"/product"} className="storefront-btn-primary inline-flex min-h-12 items-center gap-4 rounded-full px-6 py-3.5 text-sm font-bold">{site.heroButtonText}<ArrowUpRight size={18}/></Link><a href="#how-it-works" className="inline-flex items-center gap-2 text-sm font-medium text-white/85">Cara belanja<ArrowRight size={16}/></a></div>
+            <div className="mt-9 flex flex-wrap gap-x-5 gap-y-3 text-xs text-white/65"><span className="flex items-center gap-2"><Check size={14}/>Rincian produk jelas</span><span className="flex items-center gap-2"><Check size={14}/>Riwayat pesanan dalam akun</span></div>
+          </div>
+          <div className="relative pb-3 lg:pl-4"><div className="absolute -inset-5 -z-10 rounded-full bg-blue-400/10 blur-3xl"/>
+            {featured && !loadError ? <Link href={`/product/${encodeURIComponent(featured.id)}`} className="group block overflow-hidden rounded-[2rem] bg-[#f5f7fa] p-5 text-slate-900 shadow-2xl sm:p-7"><div className="flex items-center justify-between gap-3"><span className="rounded-full bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.15em]">Pilihan katalog</span><span className="text-xs text-slate-500">{featured.category?.name||"Koleksi toko"}</span></div><div className="flex aspect-[4/3] items-center justify-center p-4 sm:aspect-[5/3]"><img src={featured.imageUrl||"/placeholder.svg"} alt={featured.title} fetchPriority="high" className="max-h-full w-full object-contain transition duration-500 group-hover:scale-105"/></div><div className="flex items-end justify-between gap-5 rounded-2xl bg-white p-5"><div><p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Lengkapi ruang kerjamu</p><h2 className="line-clamp-2 text-lg font-bold leading-snug">{featured.title}</h2><p className="mt-2 text-sm font-semibold text-blue-600">{money(featured.price)}</p></div><span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white"><ArrowUpRight size={20}/></span></div></Link> : <div className="flex min-h-72 items-center justify-center rounded-[2rem] border border-white/15 bg-white/5 p-8 text-center"><div><Monitor size={48} className="mx-auto mb-5 text-white/50"/><p className="text-2xl font-bold">Ruang kerja, versi kamu.</p><p className="mt-3 text-sm text-white/60">Temukan pilihan yang cocok untuk keseharianmu.</p></div></div>}
           </div>
         </div>
-
-        {/* card glass */}
-        <div className="w-[200px] text-white absolute left-3 bottom-3 p-3 rounded-xl bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-30 border border-neutral-100/50">
-          <h5 className="font-bold text-[1.5rem]">{loading ? "Explore" : products.count + " designs"}</h5>
-          <p className="text-[.8rem]">
-            Choose from Over 55 Unique Designs for Your Need
-          </p>
-        </div>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-6 text-xs text-white/50 sm:mt-16"><span>{!loading&&!loadError?`${products.length} produk dalam koleksi` : "Jelajahi koleksi toko"}</span><span>Untuk bekerja. Untuk berkreasi. Untuk kamu.</span></div>
       </div>
-
-      {/* explore */}
-      <section className="relative bg-[#f6f9ff] px-4 pb-20 pt-24 font-satoshi md:px-6 lg:px-8" id="explore">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-            <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1.5 text-xs font-bold tracking-wide text-blue-700">
-                <Sparkles size={14} /> CURATED FOR YOU
-              </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                Explore our <span className="text-blue-600">collection</span>
-              </h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-                Find unique physical and digital creations, handpicked for your next project or everyday inspiration.
-              </p>
-            </div>
-            <Link href="/product" className="inline-flex shrink-0 items-center gap-2 self-start rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-50 sm:self-auto">
-              Browse all products <ArrowRight size={17} />
-            </Link>
-          </div>
-
-          <div className="mb-6 rounded-2xl border border-slate-100 bg-white p-3.5 shadow-[0_8px_35px_rgba(15,23,42,0.04)] sm:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-              <label htmlFor="home-product-search" className="relative block min-w-0 flex-1">
-                <Search size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-600" />
-                <input
-                  id="home-product-search"
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search products, categories, or tags..."
-                  autoComplete="off"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-[#f8faff] pl-12 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-                />
-                {searchQuery && (
-                  <button type="button" onClick={() => setSearchQuery("")} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800">
-                    <X size={17} />
-                  </button>
-                )}
-              </label>
-              <div role="group" aria-label="Filter product type" className="flex flex-wrap items-center gap-2">
-                {[
-                  { value: "all", label: "All products" },
-                  { value: "PHYSICAL", label: "Physical" },
-                  { value: "DIGITAL", label: "Digital" },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={selectedType === option.value}
-                    onClick={() => setSelectedType(option.value)}
-                    className={"rounded-xl border px-4 py-2.5 text-sm font-semibold transition " + (
-                      selectedType === option.value
-                        ? "storefront-btn-primary border-blue-600 text-white shadow-sm"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700"
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {!loading && !loadError && (
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <p className="text-sm text-slate-500"><span className="font-bold text-slate-800">{filteredProducts.length}</span> products found</p>
-              {(searchQuery || selectedType !== "all") && (
-                <button type="button" className="text-xs font-bold text-blue-700 hover:underline" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>
-                  Reset filters
-                </button>
-              )}
-            </div>
-          )}
-
-          {loading ? (
-            <ProductSkeletonGrid count={10} />
-          ) : loadError ? (
-            <div role="alert" className="flex flex-col items-center gap-4 rounded-2xl border border-rose-100 bg-white px-6 py-16 text-center">
-              <SearchX size={34} className="text-rose-400" />
-              <h3 className="text-xl font-bold text-slate-800">We could not load the products</h3>
-              <p className="text-sm text-slate-500">Check your connection and try again.</p>
-              <button type="button" onClick={getProducts} className="storefront-btn-primary rounded-xl px-5 py-2.5 text-sm font-bold text-white">Try again</button>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-blue-200 bg-white px-6 py-16 text-center">
-              <SearchX size={36} className="text-blue-500" />
-              <h3 className="text-lg font-bold text-slate-800">No products found</h3>
-              <p className="text-sm text-slate-500">Try another keyword or explore all product types.</p>
-              <button type="button" className="storefront-btn-primary mt-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white" onClick={() => { setSearchQuery(""); setSelectedType("all"); }}>View all products</button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  type={product.type}
-                  title={product.title}
-                  description={product.description}
-                  tags={product.tags}
-                  price={product.price}
-                  imageUrl={product.imageUrl}
-                  stock={product.stock}
-                  categoryName={product.category?.name}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* find us */}
-      <div className="pt-[200px] px-5 md:px-6 lg:px-8 bg-gray-50 flex justify-center gap-10 flex-col md:flex-row h-fit">
-        {/* text */}
-        <div className="w-full md:w-1/2 font-satoshi">
-          <h2 className="text-[7rem] font-extrabold mb-4 leading-[100px]">
-            Find Our Place
-          </h2>
-          <p className="w-full">
-            Step into a space where colors speak, pixels breathe, and every
-            detail tells a story. This is where imagination finds its shape —
-            and you, your place.
-          </p>
-        </div>
-
-        {/* image */}
-        <div className="w-full md:w-1/2 h-[280px]">
-          <div className="w-full bg-black h-full relative rounded-md">
-            <Image
-              src="/store.webp"
-              alt="location"
-              layout="fill"
-              objectFit="cover"
-              className="shadow-lg rounded-md"
-            />
-            <div className="flex flex-col justify-center gap-[10px] w-[200px] h-[200px] bg-white shadow-xl border-neutral-900/10 border-1 absolute -bottom-[100px] left-5 rounded-md text-center">
-              <Image
-                alt="pin map"
-                src={"/pin.png"}
-                width={50}
-                height={100}
-                className="mx-auto"
-              />
-              <div>
-                <p className="font-bold font-satoshi">jl Cisaranten no 28</p>
-                <p className="font-satoshi text-[.8rem] font-medium leading-[15px]">
-                  Visit our store
-                </p>
-              </div>
-              <Button className="mx-[10px]">
-                <Map /> maps
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* faq */}
-      <div className="pt-[200px]">
-        {/* header */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">FAQ ?</h2>
-          <p>some frequently asked questions</p>
-        </div>
-
-        {/* body */}
-        <div className="w-[90%] md:w-1/2 mx-auto !font-satoshi">
-          <Accordion type="single" collapsible>
-            <AccordionItem value="item-1">
-              <AccordionTrigger className="font-bold font-satoshi text-lg">
-                What products do you sell?
-              </AccordionTrigger>
-              <AccordionContent>
-                We offer a variety of pixel art-themed accessories including
-                keychains, tote bags, stickers, and custom prints.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-2">
-              <AccordionTrigger className="font-bold font-satoshi text-lg">
-                Can I request a custom pixel art design?
-              </AccordionTrigger>
-              <AccordionContent>
-                Yes! We accept custom orders for pixel art designs. Just send us
-                your concept or reference, and we’ll create it for you.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-3">
-              <AccordionTrigger className="font-bold font-satoshi text-lg">
-                What printing methods do you use?
-              </AccordionTrigger>
-              <AccordionContent>
-                We use high-quality digital printing for vibrant pixel details,
-                and we also offer heat press for textile items like shirts and
-                tote bags.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-4">
-              <AccordionTrigger className="font-bold font-satoshi text-lg">
-                Do you ship internationally?
-              </AccordionTrigger>
-              <AccordionContent>
-                Yes, we ship worldwide. Shipping fees and delivery times vary
-                based on your location.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-5">
-              <AccordionTrigger className="font-bold font-satoshi text-lg">
-                How can I place an order?
-              </AccordionTrigger>
-              <AccordionContent>
-                You can place an order through our website or contact us
-                directly on Instagram or WhatsApp for custom requests.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      </div>
-
-      {/* footer */}
-      <Footer />
-    </div>
-  );
+    </section>
+    <section aria-label="Kemudahan berbelanja" className="landing-container py-12 sm:py-16"><div className="grid gap-7 border-b border-slate-200/80 pb-12 md:grid-cols-3">{benefits.map(item=><div key={item.title} className="flex gap-4"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-blue-600"><item.icon size={21}/></span><div><h2 className="text-sm font-bold">{item.title}</h2><p className="mt-2 max-w-xs text-xs leading-6 text-slate-500">{item.description}</p></div></div>)}</div></section>
+    {categories.length>0 && <section className="landing-container pb-16 sm:pb-20"><div className="mb-6 flex flex-wrap items-end justify-between gap-3"><div><p className="landing-eyebrow">Mulai dari kebutuhanmu</p><h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Satu ruang, banyak kemungkinan.</h2></div><a href="#explore" className="text-sm font-semibold text-blue-600">Jelajahi koleksi ↓</a></div><div className="flex flex-wrap gap-3">{categories.map(item=><button type="button" key={item.id} onClick={()=>selectCategory(item.id)} className="group flex items-center gap-5 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-bold transition hover:border-slate-400"><span>{item.name}</span><ArrowUpRight size={16} className="text-slate-400 transition group-hover:text-blue-600"/></button>)}</div></section>}
+    <section id="explore" className="landing-container scroll-mt-28 pb-20 sm:pb-24">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-6"><div><p className="landing-eyebrow flex items-center gap-2"><Sparkles size={13}/>Koleksi pilihan</p><h2 className="landing-heading mt-3">{site.collectionTitle}</h2><p className="mt-4 max-w-xl text-sm leading-7 text-slate-500">{site.collectionDescription}</p></div><Link href="/product" className="inline-flex items-center gap-3 text-sm font-bold">Semua produk<ArrowUpRight size={17}/></Link></div>
+      <div className="mb-7 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-3 lg:flex-row lg:items-center"><label className="relative min-w-0 flex-1"><span className="sr-only">Cari produk</span><Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari produk, kategori, atau merek…" className="h-12 w-full rounded-xl bg-slate-50 pl-11 pr-10 text-sm outline-none focus:ring-2 focus:ring-blue-200"/>{search&&<button type="button" aria-label="Hapus pencarian" onClick={()=>setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400"><X size={16}/></button>}</label><div className="flex flex-wrap gap-2" role="group" aria-label="Jenis produk">{[{value:"all",label:"Semua"},{value:"PHYSICAL",label:"Produk fisik"},{value:"DIGITAL",label:"Produk digital"}].map(item=><button type="button" aria-pressed={type===item.value} onClick={()=>setType(item.value)} key={item.value} className={"rounded-xl px-4 py-3 text-xs font-semibold transition "+(type===item.value?"storefront-btn-primary":"text-slate-500 hover:bg-slate-50")}>{item.label}</button>)}</div></div>
+      {!loading&&!loadError&&<div className="mb-6 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"><p>{filtered.length} produk{category!=="all"?` · ${categories.find(c=>c.id===category)?.name||"Kategori pilihan"}`:""}</p>{(search||type!=="all"||category!=="all")&&<button type="button" onClick={reset} className="font-semibold text-blue-600">Reset filter</button>}</div>}
+      {loading?<ProductSkeletonGrid count={8}/>:loadError?<div role="alert" className="rounded-3xl border bg-white px-6 py-16 text-center"><SearchX size={32} className="mx-auto mb-4 text-slate-400"/><h3 className="text-lg font-bold">Koleksi belum dapat dimuat.</h3><p className="mt-2 text-sm text-slate-500">Periksa koneksi dan coba lagi beberapa saat.</p><button type="button" onClick={()=>void getProducts()} className="storefront-btn-primary mt-6 rounded-full px-6 py-3 text-sm font-bold">Coba lagi</button></div>:filtered.length===0?<div className="rounded-3xl border border-dashed bg-white px-6 py-16 text-center"><SearchX size={32} className="mx-auto mb-4 text-slate-400"/><h3 className="text-lg font-bold">Belum menemukan yang kamu cari?</h3><p className="mt-2 text-sm text-slate-500">Coba kata kunci lain atau lihat seluruh koleksi.</p><button type="button" onClick={reset} className="mt-5 text-sm font-bold text-blue-600">Lihat semua produk →</button></div>:<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{filtered.map(p=><ProductCard key={p.id} id={p.id} title={p.title} description={p.description} imageUrl={p.imageUrl} price={p.price} type={p.type} tags={p.tags} stock={p.stock} categoryName={p.category?.name}/>)}</div>}
+    </section>
+    <section id="how-it-works" className="scroll-mt-24 bg-white py-20 sm:py-24"><div className="landing-container"><div className="max-w-xl"><p className="landing-eyebrow">Dari pilihan, jadi pesanan</p><h2 className="landing-heading mt-3">Belanja dengan langkah yang jelas.</h2></div><div className="mt-12 grid gap-8 md:grid-cols-3">{[{title:"Temukan yang cocok",text:"Jelajahi koleksi dan baca detail produk. Pilih sesuai kebutuhan, bukan sekadar tampilan."},{title:"Periksa & selesaikan",text:"Tambahkan ke keranjang, isi tujuan pengiriman, lalu periksa total sebelum membayar."},{title:"Ikuti perkembangannya",text:"Akun pembeli menyimpan riwayat pesanan agar mudah diakses kembali dari perangkatmu."}].map((step,i)=><div key={step.title} className="border-t border-slate-200 pt-6"><span className="text-xs font-bold tracking-[.2em] text-blue-600">0{i+1}</span><h3 className="mt-5 text-xl font-bold tracking-tight">{step.title}</h3><p className="mt-3 max-w-sm text-sm leading-7 text-slate-500">{step.text}</p></div>)}</div></div></section>
+    <CustomerReviews/>
+    {site.showLocation&&<section className="landing-container grid items-center gap-10 py-20 sm:py-24 md:grid-cols-2"><div><p className="landing-eyebrow">Sampai jumpa di toko</p><h2 className="landing-heading mt-3">{site.locationTitle}</h2><p className="mt-5 whitespace-pre-line text-sm leading-7 text-slate-500">{site.locationDescription}</p><p className="mt-5 whitespace-pre-line text-sm font-medium">{site.storeAddress}</p>{site.mapsUrl&&<a href={site.mapsUrl} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-600">Buka peta<ArrowUpRight size={16}/></a>}</div>{site.locationImage&&<img src={site.locationImage} alt={site.locationTitle} loading="lazy" className="h-80 w-full rounded-3xl object-cover"/>}</section>}
+    {site.showFaq&&<section id="faq" className="landing-container grid gap-10 py-20 sm:py-24 lg:grid-cols-[.8fr_1.2fr]"><div><p className="landing-eyebrow">Sebelum kamu memesan</p><h2 className="landing-heading mt-3">{site.faqTitle}</h2><p className="mt-5 max-w-sm text-sm leading-7 text-slate-500">Kenali alur belanja dan temukan informasi yang kamu perlukan.</p>{site.contactEmail&&<a href={`mailto:${site.contactEmail}`} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-blue-600">Hubungi kami<ArrowUpRight size={16}/></a>}</div><Accordion type="single" collapsible>{site.faqItems.map((item,i)=><AccordionItem key={i} value={String(i)} className="border-slate-200"><AccordionTrigger className="py-6 text-left text-base font-semibold">{item.question}</AccordionTrigger><AccordionContent className="whitespace-pre-line pb-6 text-sm leading-7 text-slate-500">{item.answer}</AccordionContent></AccordionItem>)}</Accordion></section>}
+    <section className="landing-container pb-20"><div className="flex flex-col items-start justify-between gap-7 rounded-[2rem] bg-slate-900 p-8 text-white sm:p-12 md:flex-row md:items-center"><div><p className="text-xs font-medium uppercase tracking-[.18em] text-white/50">Pilihan kecil. Perbedaan terasa.</p><h2 className="mt-4 max-w-xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Siap melengkapi ruang kerjamu?</h2></div><Link href="/product" className="storefront-btn-primary inline-flex shrink-0 items-center gap-5 rounded-full px-6 py-4 text-sm font-bold">Temukan pilihanmu<ArrowUpRight size={18}/></Link></div></section>
+    <Footer compact/>
+  </main>;
 }

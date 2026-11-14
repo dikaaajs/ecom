@@ -10,11 +10,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 
 import {
   Table,
@@ -30,7 +25,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
-import { toast } from "sonner";
+import { toast } from "@/lib/notify";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -43,10 +38,12 @@ export function ProductTable<TData, TValue>({
   data,
   onUpdated,
 }: DataTableProps<TData, TValue>) {
+  const [deleting, setDeleting] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data,
     columns,
+    getRowId: (row) => (row as { id: string }).id,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -58,15 +55,18 @@ export function ProductTable<TData, TValue>({
   });
 
   const handleDelete = async () => {
+    if (deleting) return;
     const selectedIds = table
       .getSelectedRowModel()
       .rows.map((row: any) => row.original.id);
 
     if (selectedIds.length === 0) {
-      toast.error("Tidak ada data yang dipilih");
+      toast.warning("Tidak ada data yang dipilih");
       return;
     }
 
+    if (!window.confirm("Hapus " + selectedIds.length + " data yang dipilih?")) return;
+    setDeleting(true);
     try {
       const res = await fetch("/api/admin/products", {
         method: "DELETE",
@@ -90,13 +90,15 @@ export function ProductTable<TData, TValue>({
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Terjadi kesalahan saat menghapus data");
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <div className="space-y-2 font-satoshi">
+    <div className="min-w-0 max-w-full space-y-2 font-satoshi">
       {/* header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Input
           placeholder="Filter titles..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
@@ -107,7 +109,7 @@ export function ProductTable<TData, TValue>({
         />
         <div className="flex gap-[10px]">
           {/* button delete product */}
-          <Button variant={"outline"} size="sm" onClick={handleDelete}>
+          <Button variant={"outline"} size="sm" onClick={handleDelete} disabled={deleting || !table.getSelectedRowModel().rows.length} aria-label="Hapus data terpilih">
             <Trash className="text-red-600" />
           </Button>
 
@@ -117,7 +119,7 @@ export function ProductTable<TData, TValue>({
       </div>
 
       {/* body */}
-      <div className="overflow-hidden rounded-md border">
+      <div className="min-w-0 max-w-full overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-slate-50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -169,7 +171,7 @@ export function ProductTable<TData, TValue>({
       </div>
 
       {/* pagination */}
-      <div className="mt-[14px] w-full">
+      <div className="mt-[14px] w-full overflow-x-auto">
         <DataTablePagination table={table} />
       </div>
     </div>

@@ -62,6 +62,7 @@ model Product {
   tags        Tag[]
   images      ProductImage[]
   orderItems  OrderItem[]
+  digitalAsset DigitalAsset?
 
   isPublished Boolean  @default(true)
 
@@ -137,8 +138,10 @@ model Customer {
   name      String
   email     String
   phone     String?
+  avatarPath String?
   addresses CustomerAddress[]
   orders    Order[]
+  account   CustomerAccount?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -176,6 +179,9 @@ model Order {
   shippingCost Decimal?    @db.Decimal(12,2)
   total        Decimal?    @db.Decimal(12,2)
   notes        String?
+  checkoutAccessHash String? @unique
+  destinationDistrictId Int?
+  payment      PaymentTransaction?
   recipient    String?
   phone        String?
   addressLine  String?
@@ -184,6 +190,7 @@ model Order {
   district     String?
   postalCode   String?
   items        OrderItem[]
+  shipment     Shipment?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -208,4 +215,120 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
   @@map("order_items")
+}
+
+enum ShipmentStatus {
+  PENDING
+  READY
+  SHIPPED
+  DELIVERED
+  RETURNED
+}
+
+model Shipment {
+  id              String         @id @default(cuid())
+  orderId         String         @unique
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status          ShipmentStatus @default(PENDING)
+  courier         String?
+  service         String?
+  trackingNumber  String?
+  totalWeightGram Int
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@map("shipments")
+}
+
+model DigitalAsset {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  bucket      String
+  objectPath  String
+  fileName    String
+  contentType String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("digital_assets")
+}
+
+// Midtrans payment record. Guest order access uses an unguessable token whose
+// SHA-256 hash is stored on Order, never the raw token.
+enum PaymentState {
+  INITIALIZING
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model PaymentTransaction {
+  id                String       @id @default(cuid())
+  orderId           String       @unique
+  order             Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String       @default("MIDTRANS")
+  providerOrderId   String       @unique
+  state             PaymentState @default(INITIALIZING)
+  amount            Decimal      @db.Decimal(12,2)
+  redirectUrl       String?
+  paidAt            DateTime?
+  lastNotificationAt DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([state, createdAt])
+  @@map("payment_transactions")
+}
+
+/** Customer credentials separate from merchant/admin accounts. */
+model CustomerAccount {
+  id           String   @id @default(cuid())
+  customerId   String   @unique
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  email        String   @unique
+  passwordHash String
+  actionTokens AccountActionToken[]
+  emailVerifiedAt DateTime?
+  sessionVersion Int @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("customer_accounts")
+}
+
+enum AccountTokenPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+  CHANGE_EMAIL
+}
+
+model AccountActionToken {
+  id String @id @default(cuid())
+  accountId String
+  account CustomerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  purpose AccountTokenPurpose
+  tokenHash String @unique
+  expiresAt DateTime
+  consumedAt DateTime?
+  targetEmail String?
+  sessionVersion Int?
+  createdAt DateTime @default(now())
+
+  @@index([accountId, purpose, createdAt])
+  @@index([expiresAt])
+  @@map("account_action_tokens")
+}
+
+model AuthRateLimit {
+  key String @id
+  count Int @default(0)
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("auth_rate_limits")
 }

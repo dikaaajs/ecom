@@ -1,76 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Facebook, Instagram, Mail, Twitter, Youtube } from "lucide-react";
+﻿"use client";
 import Link from "next/link";
-
-export function Footer({ compact = false }: { compact?: boolean }) {
-  return (
-    <footer className={"bg-neutral-950 text-white relative font-satoshi " + (compact ? "mt-0" : "mt-[200px]")}>
-      <div className="container mx-auto px-4 py-12 flex gap-[50px] flex-col">
-        <div className="flex flex-col md:flex-row justify-between gap-[50px]">
-          {/* About Section */}
-          <div className="md:w-[30%]">
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <img src="/logo.png" className="w-[50px]" alt="" />
-              Pixel Perfection
-            </h3>
-            <p className="mb-4 text-gray-300">
-              Discover a collection of exclusive, high-quality pixel art. From
-              classic characters to fantasy worlds—find the perfect piece for
-              you!
-            </p>
-            <div className="flex space-x-4">
-              <Link href="#" className="hover:text-blue-400 transition-colors">
-                <Facebook className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="hover:text-blue-400 transition-colors">
-                <Twitter className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="hover:text-blue-400 transition-colors">
-                <Instagram className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="hover:text-blue-400 transition-colors">
-                <Youtube className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Newsletter */}
-          <div className="md:w-[30%]">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-[10px]">
-              <Mail />
-              Newsletter
-            </h3>
-            <p className="mb-4 text-gray-300">
-              Subscribe to get updates on new pixel art releases and special
-              offers.
-            </p>
-            <div className="flex flex-col space-y-2">
-              <Input
-                type="email"
-                placeholder="Your email"
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-              <Button className="storefront-btn-primary">
-                Subscribe
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="text-center text-gray-400 text-sm">
-          <p>
-            © {new Date().getFullYear()} Pixel Perfection. All rights reserved.
-          </p>
-          <p className="mt-2">
-            <span className="inline-block w-2 h-2 bg-blue-500 mr-1"></span>
-            <span className="inline-block w-2 h-2 bg-blue-600 mr-1"></span>
-            <span className="inline-block w-2 h-2 bg-blue-500 mr-1"></span>
-            <span className="inline-block w-2 h-2 bg-blue-600"></span>
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
+import { ArrowUpRight, Mail } from "lucide-react";
+import { useSiteSettings } from "@/components/providers/site-settings-provider";
+export function Footer({compact=false}:{compact?:boolean}) {
+  const {settings:s}=useSiteSettings();
+  return <footer style={{backgroundColor:s.footerColor,color:s.footerTextColor}} className={compact?"":"mt-24"}>
+    <div className="landing-container"><div className="grid gap-12 py-16 md:grid-cols-[1.4fr_1fr_1fr] md:gap-16"><div><Link href="/" className="inline-flex items-center gap-3">{s.logoUrl&&<img src={s.logoUrl} alt="" loading="lazy" className="h-10 max-w-28 object-contain"/>}<span className="text-xl font-bold tracking-tight">{s.siteName}</span></Link><p className="mt-5 max-w-sm whitespace-pre-line text-sm leading-7 opacity-60">{s.footerDescription}</p><div className="mt-6 flex flex-wrap gap-4">{Object.entries(s.socialLinks).filter(([,url])=>url).map(([name,url])=><a key={name} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs capitalize opacity-70 hover:opacity-100">{name}<ArrowUpRight size={12}/></a>)}</div></div>
+      <div><h2 className="text-xs font-bold uppercase tracking-[.16em] opacity-40">Jelajahi</h2><nav aria-label="Navigasi footer" className="mt-6 flex flex-col items-start gap-4 text-sm opacity-80"><Link href="/product">Semua produk</Link><Link href="/cart">Keranjang belanja</Link><Link href="/account/orders">Pesanan saya</Link><Link href="/#how-it-works">Cara belanja</Link>{s.showFaq&&<Link href="/#faq">Pertanyaan umum</Link>}</nav></div>
+      <div><h2 className="text-xs font-bold uppercase tracking-[.16em] opacity-40">Tetap terhubung</h2><div className="mt-6 space-y-4 text-sm opacity-80">{s.contactEmail&&<a className="flex items-center gap-2 break-all" href={`mailto:${s.contactEmail}`}><Mail size={15} className="shrink-0"/>{s.contactEmail}</a>}{s.contactPhone&&<p>{s.contactPhone}</p>}{s.storeAddress&&<p className="whitespace-pre-line leading-7">{s.storeAddress}</p>}{s.mapsUrl&&<a href={s.mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold">Lihat lokasi<ArrowUpRight size={13}/></a>}{!s.contactEmail&&!s.contactPhone&&!s.storeAddress&&<p className="leading-7">Lihat koleksi dan informasi produk untuk mulai berbelanja.</p>}</div></div>
+    </div><div className="flex flex-wrap justify-between gap-4 border-t border-current/15 py-6 text-xs opacity-50"><p>© {new Date().getFullYear()} {s.siteName}. All rights reserved.</p><p>Perangkat pilihan. Keseharian lebih nyaman.</p></div></div>
+  </footer>;
 }

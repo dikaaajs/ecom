@@ -1,8 +1,6 @@
 // columns.ts
 "use client";
 
-import { ButtonEditProduct } from "@/components/buttons/products/button-product-edit";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -10,16 +8,15 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { tagColorStyles } from "@/data/tag-colors";
 import { Tag, ProductImage } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { toast } from "@/lib/notify";
 import { ButtonUploadProduct } from "@/components/buttons/products/button-product-upload";
 import CardProduct from "@/components/cards/product";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export type Product = {
   id: string;
@@ -69,30 +66,23 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => {
-        const router = useRouter();
         return (
           <HoverCard>
             <HoverCardTrigger asChild>
-              <span
-                className="cursor-pointer"
-                onClick={() => router.push(`product/${row.original.id}`)}
-              >
+              <Link className="block w-64 max-w-full whitespace-normal font-medium hover:underline [overflow-wrap:anywhere]" href={`/dashboard/product/${row.original.id}`}>
                 {row.original.title}
-              </span>
+              </Link>
             </HoverCardTrigger>
-            <HoverCardContent className="w-[300px]">
-              <CardProduct row={row} />
+            <HoverCardContent align="start" collisionPadding={16} sideOffset={8} className="w-80 max-w-[calc(100vw-2rem)] max-h-[var(--radix-hover-card-content-available-height)] overflow-y-auto whitespace-normal">
+              <CardProduct product={row.original} />
             </HoverCardContent>
           </HoverCard>
         );
       },
     },
     {
-      accessorFn: (row) => row.description,
-      header: "Description",
-    },
-    {
       accessorKey: "price",
+      sortingFn: (a, b) => Number(a.original.price) - Number(b.original.price),
       header: ({ column }) => {
         return (
           <Button
@@ -152,6 +142,7 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
         const product = row.original;
         const [isPublished, setIsPublished] = useState(product.isPublished);
         const [loading, setLoading] = useState(false);
+        useEffect(() => { setIsPublished(product.isPublished); }, [product.isPublished]);
 
         const togglePublish = async (value: boolean) => {
           try {
@@ -159,6 +150,7 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
 
             const response = await fetch(`/api/admin/products/${product.id}`, {
               method: "PATCH",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ isPublished: value }),
             });
 
@@ -167,16 +159,18 @@ export function getProductColumn(onUpdated: () => void): ColumnDef<Product>[] {
             }
 
             setIsPublished(value);
-            toast.success("berhasil mengubah data");
+            onUpdated();
+            toast.success("Status publikasi produk berhasil diperbarui.");
           } catch (error) {
             console.error("Error publishing product:", error);
-            // Optionally show error toast/notification here
+            toast.error("Gagal mengubah publikasi produk. Silakan coba lagi.");
           } finally {
             setLoading(false);
           }
         };
         return (
           <Switch
+            aria-label={`Publikasikan ${product.title}`}
             checked={isPublished}
             disabled={loading}
             onCheckedChange={togglePublish}
